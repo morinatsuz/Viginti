@@ -27,7 +27,6 @@ int main(){
 
     socketstart();
     header();
-    hostmode();
     waitplayer();
     getch();
 
@@ -89,12 +88,12 @@ int hostmode(){
 
 int waitplayer(){
 
-    num_players = 1;
-    printf("-----------------------------------------------\n");
-    printf("\nWaiting for player...\n\n");
-    printf("Player 1: joined (Host)\n");
-    while (num_players < max_player)
+    num_players = 0;
+    max_player = 3;
+    char shortcmd = "W";
+    while (num_players < max_player);
 	{
+	    printf("\n\n Waiting for player...");
 		soc[num_players+1] = accept(soc[0],&cli[num_players],&addr_size);
 
 		if (soc[num_players+1]==INVALID_SOCKET)
@@ -104,13 +103,13 @@ int waitplayer(){
 		}
 		else
 		{
-			printf("Player %d: joined\n", num_players+1);
-			int numplay_net = htonl(num_players+1);
-			send(soc[num_players+1], (const char*)&numplay_net, sizeof(num_players), 0);
+			printf("Player joined!\n");
+			char cmd[1];
+			sprintf (cmd,"%c",shortcmd+1);
+			send (soc[num_players+1],cmd,1,0);
 			num_players++;
 		}
 	}
-	printf("\nAll player joined!...Starting game");
 
 
 }

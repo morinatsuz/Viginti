@@ -1,4 +1,4 @@
-//VIGINTI SERVER MODULE//
+ //VIGINTI SERVER MODULE//
 //Version 0.1a//
 
 #include <winsock2.h>
@@ -7,7 +7,7 @@
 
 //Define section for short command with server//
 #define CMD_HOST 0x03
-#define CMD_PTWO 0x04
+#define CMD_JOIN 0x04
 #define CMD_PTHREE 0x05
 #define CMD_PFOUR 0x06
 
@@ -28,7 +28,7 @@ int main(){
     socketstart();
     header();
     hostmode();
-    waitplayer();
+    waitmode();
     getch();
 
 }
@@ -69,6 +69,7 @@ int hostmode(){
 			//room setting progress
 			int sum_net;
 			int maxnum_net;
+			int testnum_net;
 			printf("[Lobby Setting]\n\n");
             while(recv(soc[1], &sum_net, sizeof(sum_net), 0) > 0)
             {
@@ -82,18 +83,48 @@ int hostmode(){
                 printf("- Ending number: %d\n", maxnum);
                 break;
             }
-            break;
+
         }
 	}
 }
 
+
+int waitmode(){
+
+	printf("[Waiting for player...]\n\n");
+	printf("Player 1: Joined (Host)\n");
+
+	while(num_players < max_player ){
+		soc[num_players+1] = accept(soc[0],&cli[num_players],&addr_size); //bind incoming connection to socket
+
+		if (soc[num_players+1]==INVALID_SOCKET) //Error checking
+		{
+			printf("Error:  Unable to accept connection!\n");
+			WSACleanup ();
+			return 0;
+		}
+		else
+		{
+            char cmd[2]; //char for command to communicate with client
+			sprintf(cmd,"%c%d",CMD_JOIN,0);
+			send(soc[num_players+1],cmd,2,0);
+
+            printf("Player %d: Joined\n", num_players+1);
+			int pnum_net = htonl(num_players+1);
+            send(soc[num_players+1], (const char*)&pnum_net, sizeof(pnum_net), 0);
+            num_players++;
+        }
+	}
+}
+
+
 int waitplayer(){
 
-    num_players = 1;
-    printf("-----------------------------------------------\n");
-    printf("\nWaiting for player...\n\n");
-    printf("Player 1: joined (Host)\n");
-    while (num_players < max_player)
+   printf("[Waiting for player...]");
+
+   num_players = 1;
+
+   while (num_players < max_player)
 	{
 		soc[num_players+1] = accept(soc[0],&cli[num_players],&addr_size);
 
@@ -101,19 +132,26 @@ int waitplayer(){
 		{
 			printf("Error:  Unable to accept connection!\n");
 			WSACleanup ();
+            return 0;
 		}
 		else
 		{
-			printf("Player %d: joined\n", num_players+1);
-			int numplay_net = htonl(num_players+1);
-			send(soc[num_players+1], (const char*)&numplay_net, sizeof(num_players), 0);
-			num_players++;
+			int testnum_net;
+			while(recv(soc[num_players+1], &testnum_net, sizeof(testnum_net), 0) > 0){
+                int testnum = ntohl(testnum_net);
+                printf("%d", testnum);
+                break;
+            num_players++;
+            printf("Player joined!\n");
+			}
 		}
 	}
-	printf("\nAll player joined!...Starting game");
+
+	printf("Full Player..Distri number");
 
 
 }
+
 int socketstart(){
 
 	printf("\n\n[Viginti Server Module Initializing...]\n\n");

@@ -4,7 +4,8 @@
 #include <winsock2.h>
 
 #define CMD_HOST 0x03
-#define CMD_PTWO 0x04
+#define CMD_JOIN 0x04
+#define CMD_START 0x05
 
 
 
@@ -12,6 +13,7 @@ SOCKET soc;
 struct sockaddr_in ser;
 int playerno;
 int numplaynet;
+
 
 void home_start(){
     printf("\n");
@@ -110,21 +112,29 @@ int hostmode(){
     int max_net = htonl(max_num);
     send(soc, (const char*)&max_net, sizeof(max_num), 0);
 
+
     printf("[Lobby successfully configured!] \n\n");
-    printf("[Please wait for other player...]");
+
 
     }
 
 int joinmode(){
 
-    printf("Hello\n");
+    printf("Hello!, ");
+    int pnum_net;
+    while(recv(soc, &pnum_net, sizeof(pnum_net), 0) > 0){
+            int pnum = ntohl(pnum_net);
+            printf("You're player %d", pnum);
 
-    while(recv(soc, &numplaynet, sizeof(numplaynet), 0) > 0){
-        int numplay = ntohl(numplaynet);
-        printf("You're player %d", numplay);
-        break;
     }
 }
+
+int waitmode(){
+
+    printf("\n\n[Waiting for other players...]");
+    return 0;
+}
+
 
 int main(){
     home_start();
@@ -136,12 +146,13 @@ int main(){
         {
             hostmode();
         }
-        else
+        if(cmd[0] == CMD_JOIN)
         {
             joinmode();
         }
         break;
     }
+    waitmode();
     getch();
 
 }

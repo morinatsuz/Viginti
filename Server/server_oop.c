@@ -1,5 +1,5 @@
  //VIGINTI SERVER MODULE//
-//Version 0.1a//
+//Version 0.2a//
 
 #include <winsock2.h>
 #include <stdio.h>
@@ -8,8 +8,7 @@
 //Define section for short command with server//
 #define CMD_HOST 0x03
 #define CMD_JOIN 0x04
-#define CMD_PTHREE 0x05
-#define CMD_PFOUR 0x06
+#define CMD_START 0x05
 
 
 

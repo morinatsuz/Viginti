@@ -87,38 +87,19 @@ int hostmode(){
 
     printf("[You're host player!...Creating lobby]\n");
     printf("Please configure lobby setting\n\n");
-    printf("[How many player in this game? (2-4 Person)] \n: ");
 
-    int sum_players = 0;
-    scanf("%d", &sum_players);
-    while(sum_players <= 1 || sum_players > 4)
-    {
-        printf("\n###Number of player is not correct###\n");
-        printf("Please try again enter  (2 to 4 players) : ");
-        scanf("%d", &sum_players);
-    }
-
+    int sum_players = check_num_player();
     int sum_net = htonl(sum_players);
     send(soc, (const char*)&sum_net, sizeof(sum_players),0);
 
-    printf("\n[Please enter your game ending number] \n: ");
-    int max_num = 0;
-    scanf("%d", &max_num);
-    while(max_num < 20)
-    {
-        printf("\n###Number over is not correct###\n");
-        printf("Please try again enter Num over (num >= 20) : ");
-        scanf("%d", &max_num);
-    }
-
+    int max_num = num_for_game_over();
     int max_net = htonl(max_num);
     send(soc, (const char*)&max_net, sizeof(max_num), 0);
 
-
     printf("[Lobby successfully configured!] \n\n");
 
-
     }
+
 
 int joinmode(){
 
@@ -150,6 +131,58 @@ int waitmode(){
     return 0;
 }
 
+int check_num_player(){
+    int sum_players = 0;
+    char check_char;
+    printf("   Enter Integer 2-4 Player : ");
+    re_Intplayer:
+    while(((scanf("%d%c", &sum_players, &check_char)!=2 || check_char!='\n') && clear_stdin()))
+    {
+        system("cls");
+        printf("\n\t\t!Notice! : Input Type Of Sum Players ERROR\n");
+        printf("\n  Please Try again Enter Integer 2-4 player : ");
+        goto re_Intplayer;
+    }
+
+    if(sum_players < 2 || sum_players > 4)
+    {
+        system("cls");
+        printf("\n\t\t!Notice! : Number For Sum Players Out Of Range\n");
+        printf("\n  Please Try Again Enter Integer 2-4 player : ");
+        goto re_Intplayer;
+    }
+    return sum_players;
+}
+
+int clear_stdin(){
+    while(getchar()!='\n')
+    {
+        return 1;
+    }
+}
+
+int num_for_game_over(){
+    int num_over = 0;
+    char check_char;
+    printf("  Please Enter integer for check game over : ");
+    re_checkIntNover:
+    while(((scanf("%d%c", &num_over, &check_char) != 2 || check_char != '\n') && clear_stdin()))
+    {
+        system("cls");
+        printf("\n\t\t!Notice! : Number For Check Game over is not correct\n");
+        printf("\n  Please try again Enter integer for check game over : ");
+        goto re_checkIntNover;
+    }
+
+    if(num_over < 20)
+    {
+        system("cls");
+        printf("\n\t\t!Notice! : Number For Check Game over Out Of Range\n");
+        printf("\n  Please Try Again Enter Integer For Check Game Over (Number >= 20) : ");
+        goto re_checkIntNover;
+    }
+    return num_over;
+}
 
 int main(){
     home_start();

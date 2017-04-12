@@ -10,11 +10,12 @@
 #define CMD_JOIN 0x04
 #define CMD_START 0x05
 #define CMD_TURN 0x06
-#define CMD_WIN 0x07
-#define CMD_LOSE 0x08
-#define GAME_ONE 0x09
-#define GAME_TWO 0x10
-#define GAME_THREE 0x11
+#define CMD_WAIT 0x07
+#define CMD_WIN 0x08
+#define CMD_LOSE 0x09
+#define GAME_ONE 0x10
+#define GAME_TWO 0x11
+#define GAME_THREE 0x12
 
 //Global Variable//
 struct sockaddr_in ser; //Struct of server information
@@ -95,7 +96,7 @@ int hostmode(){
 
 int waitmode(){
 
-	printf("[Waiting for player...]\n\n");
+	printf("\n[Waiting for player...]\n\n");
 	printf("Player 1: Joined (Host)\n");
 
 	while(num_players < max_player ){
@@ -130,15 +131,58 @@ int waitmode(){
 
 int gamemode(){
 
-    printf("Game is starting...\n");
+    printf("\n--------------------------------------------------\n");
+    printf("[Game is starting...]\n\n");
     int i;
-    char cmd[2];
-    sprintf(cmd,"%c%d",CMD_START,0);
+    char startcmd[2];
+    sprintf(startcmd,"%c%d",CMD_START,0);
     for (i = 1 ; i < max_player+1 ; i++){
-        printf("Player %d starting...", i);
-        send(soc[i], cmd, 2, 0);
+        printf("[Player %d starting...]\n", i);
+        send(soc[i], startcmd, 2, 0);
     }
 
+    int totalnumber = 0;
+    int turn = 1;
+    int totalturn = 1;
+
+   while(1){
+    char cmd[2];
+    char recvcmd[2];
+    sprintf(cmd,"%c%d",CMD_TURN,0);
+    send(soc[turn], cmd, 2, 0);
+    printf("[Turn %d | Total Number %d / %d | Player %d - Waiting for input...]\n", totalturn, totalnumber, maxnum, turn);
+    while(recv(soc[turn], recvcmd, 2, 0) > 0){
+        if(recvcmd[0] == GAME_ONE){
+            totalnumber +=1;
+            printf("-> Player %d | Input 1 | Total %d\n", turn, totalnumber);
+        }
+        if(recvcmd[0] == GAME_TWO){
+            totalnumber +=2;
+            printf("-> Player %d | Input 2 | Total %d\n", turn, totalnumber);
+
+        }
+        if(recvcmd[0] == GAME_THREE){
+            totalnumber +=3;
+            printf("-> Player %d | Input 3 | Total %d\n", turn, totalnumber);
+
+        }
+    printf("Distro");
+    int i;
+    for(i = 1; i < max_player+1 ; i++){
+        printf("Tell Player %d", i);
+        send(soc[i], recvcmd, 2, 0);
+        }
+    turn++;
+    totalturn++;
+    if(turn > max_player){
+        turn = 1;
+    }
+
+    break;
+    }
+
+
+}
 }
 
 int socketstart(){
@@ -193,3 +237,4 @@ int socketstart(){
     printf("Server Successfully Initialize!\n\n");
 
     }
+

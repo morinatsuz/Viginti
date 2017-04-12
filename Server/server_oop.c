@@ -9,9 +9,12 @@
 #define CMD_HOST 0x03
 #define CMD_JOIN 0x04
 #define CMD_START 0x05
-
-
-
+#define CMD_TURN 0x06
+#define CMD_WIN 0x07
+#define CMD_LOSE 0x08
+#define GAME_ONE 0x09
+#define GAME_TWO 0x10
+#define GAME_THREE 0x11
 
 //Global Variable//
 struct sockaddr_in ser; //Struct of server information
@@ -31,6 +34,7 @@ int main(){
     header();
     hostmode();
     waitmode();
+    gamemode();
     getch();
 
 }
@@ -89,7 +93,6 @@ int hostmode(){
 	}
 }
 
-
 int waitmode(){
 
 	printf("[Waiting for player...]\n\n");
@@ -120,40 +123,21 @@ int waitmode(){
             num_players++;
         }
 	}
+
+	printf("[All player joined!, Starting game...]\n");
+	closesocket (soc[0]);
 }
 
+int gamemode(){
 
-int waitplayer(){
-
-   printf("[Waiting for player...]");
-
-   num_players = 1;
-
-   while (num_players < max_player)
-	{
-		soc[num_players+1] = accept(soc[0],&cli[num_players],&addr_size);
-
-		if (soc[num_players+1]==INVALID_SOCKET)
-		{
-			printf("Error:  Unable to accept connection!\n");
-			WSACleanup ();
-            return 0;
-		}
-		else
-		{
-			int testnum_net;
-			while(recv(soc[num_players+1], &testnum_net, sizeof(testnum_net), 0) > 0){
-                int testnum = ntohl(testnum_net);
-                printf("%d", testnum);
-                break;
-            num_players++;
-            printf("Player joined!\n");
-			}
-		}
-	}
-
-	printf("Full Player..Distri number");
-
+    printf("Game is starting...\n");
+    int i;
+    char cmd[2];
+    sprintf(cmd,"%c%d",CMD_START,0);
+    for (i = 1 ; i < max_player+1 ; i++){
+        printf("Player %d starting...", i);
+        send(soc[i], cmd, 2, 0);
+    }
 
 }
 

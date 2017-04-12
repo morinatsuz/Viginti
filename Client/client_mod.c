@@ -13,6 +13,8 @@ SOCKET soc;
 struct sockaddr_in ser;
 int playerno;
 int numplaynet;
+int maxnum;
+int pmax;
 
 
 void home_start(){
@@ -120,12 +122,25 @@ int hostmode(){
 
 int joinmode(){
 
-    printf("Hello!, ");
+    printf("     Welcome to Viginti : Multiplayer Counting Game\n");
+    printf("[Lobby setting |");
+    int maxnum_net;
+    int maxp_net;
     int pnum_net;
+    while(recv(soc, &maxnum_net, sizeof(maxnum_net), 0) > 0){
+            maxnum = ntohl(maxnum_net);
+            printf(" Ending number : %d |", maxnum);
+            break;
+    }
+    while(recv(soc, &maxp_net, sizeof(maxp_net), 0) > 0){
+            pmax = ntohl(maxp_net);
+            printf(" Player Required : %d]\n", pmax);
+            break;
+    }
     while(recv(soc, &pnum_net, sizeof(pnum_net), 0) > 0){
             int pnum = ntohl(pnum_net);
-            printf("You're player %d", pnum);
-
+            printf("\nYou're player %d", pnum);
+            break;
     }
 }
 

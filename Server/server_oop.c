@@ -21,6 +21,9 @@ int addr_size = sizeof (struct sockaddr); //Size of address depend on player = 4
 int num_players = 0; //this int use to indicate player total numbers
 int maxnum;
 int max_player;
+int sum_net;
+int maxnum_net;
+
 SOCKET soc[5]; //Socket for player 4+1
 
 int main(){
@@ -69,7 +72,6 @@ int hostmode(){
 			//room setting progress
 			int sum_net;
 			int maxnum_net;
-			int testnum_net;
 			printf("[Lobby Setting]\n\n");
             while(recv(soc[1], &sum_net, sizeof(sum_net), 0) > 0)
             {
@@ -111,6 +113,10 @@ int waitmode(){
 
             printf("Player %d: Joined\n", num_players+1);
 			int pnum_net = htonl(num_players+1);
+			maxnum_net = htonl(max_player);
+			sum_net = htonl(maxnum);
+			send(soc[num_players+1], (const char*)&sum_net, sizeof(sum_net), 0);
+			send(soc[num_players+1], (const char*)&maxnum_net, sizeof(maxnum_net), 0);
             send(soc[num_players+1], (const char*)&pnum_net, sizeof(pnum_net), 0);
             num_players++;
         }

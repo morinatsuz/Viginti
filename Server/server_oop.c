@@ -227,7 +227,7 @@ int distri_waitmode(int turn){
             printf("Tell Player %d to wait\n", i);
         }
 
-        for (j = turn-1 ; i > 0 ; i--){
+        for (j = turn-1 ; j > 0 ; j--){
             send(soc[i], waitcmd, 2, 0);
             printf("Tell Player %d to wait\n", j);
         }

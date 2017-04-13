@@ -148,8 +148,11 @@ int gamemode(){
    while(1){
     char cmd[2];
     char recvcmd[2];
+
     sprintf(cmd,"%c%d",CMD_TURN,0);
     send(soc[turn], cmd, 2, 0);
+    distri_waitmode(turn);
+
     printf("[Turn %d | Total Number %d / %d | Player %d - Waiting for input...]\n", totalturn, totalnumber, maxnum, turn);
     while(recv(soc[turn], recvcmd, 2, 0) > 0){
         if(recvcmd[0] == GAME_ONE){
@@ -166,10 +169,10 @@ int gamemode(){
             printf("-> Player %d | Input 3 | Total %d\n", turn, totalnumber);
 
         }
-    printf("Distro");
+    printf("[Distro mode]\n");
     int i;
     for(i = 1; i < max_player+1 ; i++){
-        printf("Tell Player %d", i);
+        printf("Tell Player %d last input\n", i);
         send(soc[i], recvcmd, 2, 0);
         }
     turn++;
@@ -184,6 +187,58 @@ int gamemode(){
 
 }
 }
+
+int distri_waitmode(int turn){
+
+    //This function use for distribute wait mode for user
+
+    char waitcmd[2];
+    sprintf(waitcmd,"%c%d",CMD_WAIT,0);
+    printf("%d", turn);
+
+    if(turn == 1){
+        int i;
+        printf("Least Distro mode!\n");
+        for(i = 2 ; i < max_player+1 ; i++){
+            send(soc[i], waitcmd, 2, 0);
+            printf("Tell Player %d to wait\n", i);
+        }
+        goto ending;
+    }
+
+    if(turn == max_player){
+
+        int i;
+        printf("Max Distro mode!\n");
+        for(i = max_player-1 ; i > 0 ; i--){
+            send(soc[i], waitcmd, 2, 0);
+            printf("Tell Player %d to wait\n", i);
+        }
+        goto ending;
+    }
+
+    else{
+
+        int i,j;
+        printf("Between Distro mode!\n");
+
+        for(i = turn+1 ; i < max_player+1 ; i++){
+            send(soc[i], waitcmd, 2, 0);
+            printf("Tell Player %d to wait\n", i);
+        }
+
+        for (j = turn-1 ; i > 0 ; i--){
+            send(soc[i], waitcmd, 2, 0);
+            printf("Tell Player %d to wait\n", j);
+        }
+        goto ending;
+    }
+
+    ending:
+    return 0;
+
+}
+
 
 int socketstart(){
 

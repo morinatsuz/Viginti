@@ -7,11 +7,12 @@
 #define CMD_JOIN 0x04
 #define CMD_START 0x05
 #define CMD_TURN 0x06
-#define CMD_WIN 0x07
-#define CMD_LOSE 0x08
-#define GAME_ONE 0x09
-#define GAME_TWO 0x10
-#define GAME_THREE 0x11
+#define CMD_WAIT 0x07
+#define CMD_WIN 0x08
+#define CMD_LOSE 0x09
+#define GAME_ONE 0x10
+#define GAME_TWO 0x11
+#define GAME_THREE 0x12
 
 SOCKET soc;
 struct sockaddr_in ser;
@@ -19,6 +20,7 @@ int playerno;
 int numplaynet;
 int maxnum;
 int pmax;
+int totalnumber = 0;
 char hostcmd[2];
 
 void home_start(){
@@ -100,7 +102,7 @@ int hostmode(){
     int max_net = htonl(max_num);
     send(soc, (const char*)&max_net, sizeof(max_num), 0);
 
-    printf("[Lobby successfully configured!] \n\n");
+    printf("\n[Lobby successfully configured!] \n\n");
 
     }
 
@@ -169,6 +171,26 @@ int clear_stdin(){
     }
 }
 
+int waitinturn(){
+
+    printf("Wait in turn...\n");
+    char recvcmd[2];
+    while(recv(soc, recvcmd, 2, 0) > 0){
+        printf("Hello from server!\n");
+        if(recvcmd[0] == GAME_ONE){
+                totalnumber += 1;
+            }
+        if(recvcmd[0] == GAME_TWO){
+                totalnumber += 2;
+            }
+        if(recvcmd[0] == GAME_ONE){
+                totalnumber += 3;
+            }
+    break;
+    }
+}
+
+
 int num_for_game_over(){
     int num_over = 0;
     char check_char;
@@ -196,6 +218,8 @@ int game_start(){
 
     printf("\n\nGame is starting...");
     char cmd[2];
+    restart:
+    printf("Process Restart!\n");
     while(recv(soc, cmd, 2, 0) > 0){
         if(cmd[0] == CMD_TURN){
             int feedback = check_gamenum();
@@ -203,16 +227,42 @@ int game_start(){
                 char feedbackcmd[2];
                 sprintf(feedbackcmd,"%c%d",GAME_ONE,0);
                 send(soc, feedbackcmd, 2, 0);
+                waitinturn();
+                goto restart;
             }
             if(feedback == 2){
                 char feedbackcmd[2];
                 sprintf(feedbackcmd,"%c%d",GAME_TWO,0);
                 send(soc, feedbackcmd, 2, 0);
+                waitinturn();
+                goto restart;
             }
             if(feedback == 3){
                 char feedbackcmd[2];
                 sprintf(feedbackcmd,"%c%d",GAME_THREE,0);
                 send(soc, feedbackcmd, 2, 0);
+                waitinturn();
+                goto restart;
+            }
+        }
+
+        if(cmd[0] == CMD_WAIT){
+            printf("Waiting input from server\n");
+            char recvcmd[2];
+            while(recv(soc, recvcmd, 2, 0) > 0){
+                printf("Hello from server\n");
+                if(recvcmd[0] == GAME_ONE){
+                        totalnumber += 1;
+                        goto restart;
+                }
+                if(recvcmd[0] == GAME_TWO){
+                        totalnumber += 2;
+                        goto restart;
+                }
+                if(recvcmd[0] == GAME_THREE){
+                        totalnumber += 3;
+                        goto restart;
+                }
             }
         }
 
@@ -240,6 +290,9 @@ int game_start(){
 
 
 }
+
+
+
 
 int check_gamenum(){
 

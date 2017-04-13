@@ -6,8 +6,13 @@
 #define CMD_HOST 0x03
 #define CMD_JOIN 0x04
 #define CMD_START 0x05
-
-
+#define CMD_TURN 0x06
+#define CMD_WAIT 0x07
+#define CMD_WIN 0x08
+#define CMD_LOSE 0x09
+#define GAME_ONE 0x10
+#define GAME_TWO 0x11
+#define GAME_THREE 0x12
 
 SOCKET soc;
 struct sockaddr_in ser;
@@ -15,7 +20,8 @@ int playerno;
 int numplaynet;
 int maxnum;
 int pmax;
-
+int totalnumber = 0;
+char hostcmd[2];
 
 void home_start(){
     printf("\n");
@@ -96,10 +102,9 @@ int hostmode(){
     int max_net = htonl(max_num);
     send(soc, (const char*)&max_net, sizeof(max_num), 0);
 
-    printf("[Lobby successfully configured!] \n\n");
+    printf("\n[Lobby successfully configured!] \n\n");
 
     }
-
 
 int joinmode(){
 
@@ -119,16 +124,21 @@ int joinmode(){
             break;
     }
     while(recv(soc, &pnum_net, sizeof(pnum_net), 0) > 0){
-            int pnum = ntohl(pnum_net);
-            printf("\nYou're player %d", pnum);
+            playerno = ntohl(pnum_net);
+            printf("\nYou're player %d", playerno);
             break;
     }
 }
 
 int waitmode(){
 
+    char cmd[2];
     printf("\n\n[Waiting for other players...]");
-    return 0;
+    while(recv(soc, cmd, 2, 0) > 0){
+        if(cmd[0] == CMD_START){
+            break;
+        }
+    }
 }
 
 int check_num_player(){
@@ -161,6 +171,26 @@ int clear_stdin(){
     }
 }
 
+int waitinturn(){
+
+    printf("Wait in turn...\n");
+    char recvcmd[2];
+    while(recv(soc, recvcmd, 2, 0) > 0){
+        printf("Hello from server!\n");
+        if(recvcmd[0] == GAME_ONE){
+                totalnumber += 1;
+            }
+        if(recvcmd[0] == GAME_TWO){
+                totalnumber += 2;
+            }
+        if(recvcmd[0] == GAME_ONE){
+                totalnumber += 3;
+            }
+    break;
+    }
+}
+
+
 int num_for_game_over(){
     int num_over = 0;
     char check_char;
@@ -184,23 +214,164 @@ int num_for_game_over(){
     return num_over;
 }
 
+int game_start(){
+
+    printf("\n\nGame is starting...");
+    char cmd[2];
+    restart:
+    printf("Process Restart!\n");
+    while(recv(soc, cmd, 2, 0) > 0){
+        if(cmd[0] == CMD_TURN){
+            int feedback = check_gamenum();
+            if(feedback == 1){
+                char feedbackcmd[2];
+                sprintf(feedbackcmd,"%c%d",GAME_ONE,0);
+                send(soc, feedbackcmd, 2, 0);
+                waitinturn();
+                goto restart;
+            }
+            if(feedback == 2){
+                char feedbackcmd[2];
+                sprintf(feedbackcmd,"%c%d",GAME_TWO,0);
+                send(soc, feedbackcmd, 2, 0);
+                waitinturn();
+                goto restart;
+            }
+            if(feedback == 3){
+                char feedbackcmd[2];
+                sprintf(feedbackcmd,"%c%d",GAME_THREE,0);
+                send(soc, feedbackcmd, 2, 0);
+                waitinturn();
+                goto restart;
+            }
+        }
+
+        if(cmd[0] == CMD_WAIT){
+            printf("Waiting input from server\n");
+            char recvcmd[2];
+            while(recv(soc, recvcmd, 2, 0) > 0){
+                printf("Hello from server\n");
+                if(recvcmd[0] == GAME_ONE){
+                        totalnumber += 1;
+                        goto restart;
+                }
+                if(recvcmd[0] == GAME_TWO){
+                        totalnumber += 2;
+                        goto restart;
+                }
+                if(recvcmd[0] == GAME_THREE){
+                        totalnumber += 3;
+                        goto restart;
+                }
+            }
+        }
+
+        if(cmd[0] == CMD_WIN){
+            if (hostcmd[0] == CMD_HOST){
+                endmode_host();
+                break;
+            }
+            if (hostcmd[0] == CMD_JOIN){
+                endmode_client();
+                break;
+            }
+        }
+        if (cmd[0] == CMD_LOSE){
+            if (hostcmd[0] == CMD_HOST){
+                endmode_hostlose();
+                break;
+            }
+            if (hostcmd[0] == CMD_JOIN){
+                endmode_lose();
+                break;
+            }
+        }
+    }
+
+
+}
+
+
+
+
+int check_gamenum(){
+
+        int range_input = 0;
+        char check_char;
+
+        printf("  |Player %d| Please Enter your range number (1-3) : ", playerno);
+        while(((scanf("%d%c", &range_input, &check_char)!=2 || check_char!='\n') && clear_stdin()))
+        {
+            system("cls");
+            printf("\n\t\t!Notice! : Type of input ERROR\n");
+            //printf("\n  NUMBER : %d / %d\n\n", check, num_over);
+            printf("  |Player %d| Please try again Enter your number type integer (1-3) : ", playerno);
+        }
+        printf("\n-------------------------------------------------------------------\n");
+        while(range_input < 1 || range_input > 3)
+        {
+            printf("\n\t\t!Notice! : Out of range number\n");
+            //printf("\n  NUMBER : %d / %d\n\n", check, num_over);
+            printf("  |Player %d| Please try again enter range number (1-3) : ", playerno);
+            while(((scanf("%d%c", &range_input, &check_char)!=2 || check_char!='\n') && clear_stdin()))
+            {
+                system("cls");
+                printf("\n\t\t!Notice! : Type of input ERROR\n");
+                //printf("\n  NUMBER : %d / %d\n\n", check, num_over);
+                printf("  |Player %d| Please try again Enter your number type integer (1-3) : ", playerno);
+            }
+            printf("\n-------------------------------------------------------------------\n");
+        }
+
+        return range_input;
+
+}
+
+int endmode_lose(){
+
+    printf("You lose! Player %d, Better luck next time.", playerno);
+    printf("[Waiting for host to select...]");
+
+}
+
+int endmode_hostlose(){
+
+    printf("You lose! Player %d, Better luck next time.", playerno);
+    printf("[Waiting for host to select...]");
+
+}
+
+int endmode_client(){
+
+    printf("Congratulations! Player %d, You win the Viginti.\n", playerno);
+    printf("[Waiting for host to select...]");
+
+}
+
+int endmode_host(){
+
+    printf("Congratulations! Player 1, You win the Viginti.\n");
+    printf("Do you want to play again?");
+
+}
+
 int main(){
     home_start();
     sock_start();
-    char cmd[2];
-    while(recv(soc,cmd,2,0) > 0)
+    while(recv(soc,hostcmd,2,0) > 0)
     {
-        if(cmd[0] == CMD_HOST)
+        if(hostcmd[0] == CMD_HOST)
         {
             hostmode();
         }
-        if(cmd[0] == CMD_JOIN)
+        if(hostcmd[0] == CMD_JOIN)
         {
             joinmode();
         }
         break;
     }
     waitmode();
+    game_start();
     getch();
 
 }

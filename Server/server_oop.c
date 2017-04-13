@@ -9,9 +9,13 @@
 #define CMD_HOST 0x03
 #define CMD_JOIN 0x04
 #define CMD_START 0x05
-
-
-
+#define CMD_TURN 0x06
+#define CMD_WAIT 0x07
+#define CMD_WIN 0x08
+#define CMD_LOSE 0x09
+#define GAME_ONE 0x10
+#define GAME_TWO 0x11
+#define GAME_THREE 0x12
 
 //Global Variable//
 struct sockaddr_in ser; //Struct of server information
@@ -31,6 +35,7 @@ int main(){
     header();
     hostmode();
     waitmode();
+    gamemode();
     getch();
 
 }
@@ -89,10 +94,9 @@ int hostmode(){
 	}
 }
 
-
 int waitmode(){
 
-	printf("[Waiting for player...]\n\n");
+	printf("\n[Waiting for player...]\n\n");
 	printf("Player 1: Joined (Host)\n");
 
 	while(num_players < max_player ){
@@ -120,42 +124,121 @@ int waitmode(){
             num_players++;
         }
 	}
+
+	printf("[All player joined!, Starting game...]\n");
+	closesocket (soc[0]);
 }
 
+int gamemode(){
 
-int waitplayer(){
+    printf("\n--------------------------------------------------\n");
+    printf("[Game is starting...]\n\n");
+    int i;
+    char startcmd[2];
+    sprintf(startcmd,"%c%d",CMD_START,0);
+    for (i = 1 ; i < max_player+1 ; i++){
+        printf("[Player %d starting...]\n", i);
+        send(soc[i], startcmd, 2, 0);
+    }
 
-   printf("[Waiting for player...]");
+    int totalnumber = 0;
+    int turn = 1;
+    int totalturn = 1;
 
-   num_players = 1;
+   while(1){
+    char cmd[2];
+    char recvcmd[2];
 
-   while (num_players < max_player)
-	{
-		soc[num_players+1] = accept(soc[0],&cli[num_players],&addr_size);
+    sprintf(cmd,"%c%d",CMD_TURN,0);
+    send(soc[turn], cmd, 2, 0);
+    distri_waitmode(turn);
 
-		if (soc[num_players+1]==INVALID_SOCKET)
-		{
-			printf("Error:  Unable to accept connection!\n");
-			WSACleanup ();
-            return 0;
-		}
-		else
-		{
-			int testnum_net;
-			while(recv(soc[num_players+1], &testnum_net, sizeof(testnum_net), 0) > 0){
-                int testnum = ntohl(testnum_net);
-                printf("%d", testnum);
-                break;
-            num_players++;
-            printf("Player joined!\n");
-			}
-		}
-	}
+    printf("[Turn %d | Total Number %d / %d | Player %d - Waiting for input...]\n", totalturn, totalnumber, maxnum, turn);
+    while(recv(soc[turn], recvcmd, 2, 0) > 0){
+        if(recvcmd[0] == GAME_ONE){
+            totalnumber +=1;
+            printf("-> Player %d | Input 1 | Total %d\n", turn, totalnumber);
+        }
+        if(recvcmd[0] == GAME_TWO){
+            totalnumber +=2;
+            printf("-> Player %d | Input 2 | Total %d\n", turn, totalnumber);
 
-	printf("Full Player..Distri number");
+        }
+        if(recvcmd[0] == GAME_THREE){
+            totalnumber +=3;
+            printf("-> Player %d | Input 3 | Total %d\n", turn, totalnumber);
+
+        }
+    printf("[Distro mode]\n");
+    int i;
+    for(i = 1; i < max_player+1 ; i++){
+        printf("Tell Player %d last input\n", i);
+        send(soc[i], recvcmd, 2, 0);
+        }
+    turn++;
+    totalturn++;
+    if(turn > max_player){
+        turn = 1;
+    }
+
+    break;
+    }
 
 
 }
+}
+
+int distri_waitmode(int turn){
+
+    //This function use for distribute wait mode for user
+
+    char waitcmd[2];
+    sprintf(waitcmd,"%c%d",CMD_WAIT,0);
+    printf("%d", turn);
+
+    if(turn == 1){
+        int i;
+        printf("Least Distro mode!\n");
+        for(i = 2 ; i < max_player+1 ; i++){
+            send(soc[i], waitcmd, 2, 0);
+            printf("Tell Player %d to wait\n", i);
+        }
+        goto ending;
+    }
+
+    if(turn == max_player){
+
+        int i;
+        printf("Max Distro mode!\n");
+        for(i = max_player-1 ; i > 0 ; i--){
+            send(soc[i], waitcmd, 2, 0);
+            printf("Tell Player %d to wait\n", i);
+        }
+        goto ending;
+    }
+
+    else{
+
+        int i,j;
+        printf("Between Distro mode!\n");
+
+        for(i = turn+1 ; i < max_player+1 ; i++){
+            send(soc[i], waitcmd, 2, 0);
+            printf("Tell Player %d to wait\n", i);
+        }
+
+        for (j = turn-1 ; j > 0 ; j--){
+            send(soc[i], waitcmd, 2, 0);
+            printf("Tell Player %d to wait\n", j);
+        }
+        goto ending;
+    }
+
+    ending:
+    return 0;
+
+}
+
 
 int socketstart(){
 
@@ -209,3 +292,4 @@ int socketstart(){
     printf("Server Successfully Initialize!\n\n");
 
     }
+

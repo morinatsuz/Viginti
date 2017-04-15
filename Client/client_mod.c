@@ -75,13 +75,20 @@ int sock_start(){
 		return 0;
 	}
 
+    int ip1 = 0, ip2 = 0, ip3 = 0, ip4 = 0;
+    printf("Enter server IP\n");
+    scanf("%d.%d.%d.%d", &ip1, &ip2, &ip3, &ip4);
+    char ipaddr[16];
+    sprintf(ipaddr,"%d.%d.%d.%d",(int)ip1,(int)ip2,(int)ip3,(int)ip4);
+    printf("%s", ipaddr);
+
 	soc = socket (AF_INET,SOCK_STREAM,0);
 
 	printf("- Connecting to server...");
 
     ser.sin_family = AF_INET;
     ser.sin_port = htons (5555);	// RPSS port is 5555
-    ser.sin_addr.s_addr = inet_addr ("127.0.0.1");
+    ser.sin_addr.s_addr = inet_addr (ipaddr);
 
     if (connect(soc, (LPSOCKADDR)&ser, sizeof(ser))==SOCKET_ERROR)
     {
@@ -377,7 +384,7 @@ int handler_clientready(){
     int handler = send(soc, readycmd, 2, 0);
     if((handler == 0) || (handler == SOCKET_ERROR)){
         system("cls");
-        printf("\n[Error: Server Disconnected, Game will restart soon.]\n\n\n");
+        printf("\n[Error: Server Disconnected, Game will restart soon.]\n");
         WSACleanup();
         Sleep(7500);
         system("cls");

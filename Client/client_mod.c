@@ -30,10 +30,12 @@ char readycmd[2];
 int handler_checkactive(){
 
     char cmd[2];
+    printf("wait for check active\n");
     while(recv(soc, cmd, 2, 0) > 0){
         if (cmd[0] == CMD_EXIT){
             restart();
         }
+        break;
     }
 
 }
@@ -289,6 +291,8 @@ int game_start(){
     printf("\n\nGame is starting...");
     char cmd[2];
     restart:
+    handler_checkactive();
+    exit_handler();
     printf("Process Restart!\n");
     while(recv(soc, cmd, 2, 0) > 0){
         if(cmd[0] == CMD_TURN){
@@ -318,6 +322,7 @@ int game_start(){
 
         if(cmd[0] == CMD_WAIT){
             printf("Waiting input from server\n");
+            exit_handler();
             char recvcmd[2];
             while(recv(soc, recvcmd, 2, 0) > 0){
                 printf("Hello from server\n");

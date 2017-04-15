@@ -45,12 +45,12 @@ int handler_checkactive(int player){
         return 0;
     }
     else{
+        printf("Player %d active", player);
         return 1;
     }
 
 
 }
-
 
 int handler_serverexit(){
 
@@ -74,6 +74,9 @@ int handler_serverready(){
             WSACleanup();
             Sleep(7500);
             system("cls");
+            num_players = 0;
+            max_player = 0;
+            maxnum = 0;
             main();
         }
     }
@@ -209,11 +212,12 @@ int gamemode(){
    while(1){
     char cmd[2];
     char recvcmd[2];
+    handler_serverready();
+    exit_handler();
 
     sprintf(cmd,"%c%d",CMD_TURN,0);
     send(soc[turn], cmd, 2, 0);
     distri_waitmode(turn);
-
     printf("[Turn %d | Total Number %d / %d | Player %d - Waiting for input...]\n", totalturn, totalnumber, maxnum, turn);
     while(recv(soc[turn], recvcmd, 2, 0) > 0){
         if(recvcmd[0] == GAME_ONE){

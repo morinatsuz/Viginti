@@ -29,11 +29,41 @@ int maxnum;
 int max_player;
 int sum_net;
 int maxnum_net;
+char readycmd[2];
+
 
 SOCKET soc[5]; //Socket for player 4+1
 
+int handler_serverready(int player){
+
+    int handler = send(soc[player], readycmd, 2, 0);
+    if((handler == 0) || (handler == SOCKET_ERROR)){
+        system("cls");
+        printf("\n[Error: Player %d disconnected, Server will restart soon.]\n", player);
+        WSACleanup();
+        Sleep(7500);
+        system("cls");
+        main();
+    }
+    return 0;
+
+}
+
+int handler_serverexit(){
+
+    char cmd[2];
+    sprintf(cmd,"%c%d", CMD_EXIT, 0);
+    int i;
+    for(i = 0;i < 6;i++){
+        send(soc[i],cmd,2,0);
+    }
+    exit(0);
+
+}
+
 int main(){
 
+    sprintf(readycmd,"%c%d",CMD_READY,0);
     socketstart();
     header();
     hostmode();
@@ -103,6 +133,7 @@ int waitmode(){
 
 	printf("\n[Waiting for player...]\n\n");
 	printf("Player 1: Joined (Host)\n");
+	signal(SIGBREAK, &handler_serverexit);
 
 	while(num_players < max_player ){
 		soc[num_players+1] = accept(soc[0],&cli[num_players],&addr_size); //bind incoming connection to socket
@@ -121,11 +152,14 @@ int waitmode(){
 
             printf("Player %d: Joined\n", num_players+1);
 			int pnum_net = htonl(num_players+1);
+
 			maxnum_net = htonl(max_player);
 			sum_net = htonl(maxnum);
+
 			send(soc[num_players+1], (const char*)&sum_net, sizeof(sum_net), 0);
 			send(soc[num_players+1], (const char*)&maxnum_net, sizeof(maxnum_net), 0);
             send(soc[num_players+1], (const char*)&pnum_net, sizeof(pnum_net), 0);
+
             num_players++;
         }
 	}

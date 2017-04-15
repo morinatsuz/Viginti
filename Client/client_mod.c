@@ -27,7 +27,25 @@ int totalnumber = 0;
 char hostcmd[2];
 char readycmd[2];
 
+int exit_handler(){
 
+    printf("using handler\n");
+    char cmd[2];
+    while(recv(soc, cmd, 2, 0) > 0){
+        if(cmd[0] == CMD_EXIT){
+            printf("\n[Server disconnect!, Initiate Winsock Cleanup...]\n");
+            WSACleanup();
+            printf("- Unload Winsock 2.2");
+            printf("[Process successfully restart!, Rebooting server]");
+            Sleep(3000);
+            system("cls");
+            main();
+        }
+        if(cmd[0] == CMD_READY){
+            return 0;
+        }
+    }
+}
 
 int handler_clientexit(){
 
@@ -161,6 +179,7 @@ int waitmode(){
 
     char cmd[2];
     printf("\n\n[Waiting for other players...]");
+    exit_handler();
     while(recv(soc, cmd, 2, 0) > 0){
         if(cmd[0] == CMD_START){
             break;

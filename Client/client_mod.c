@@ -2,6 +2,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <winsock2.h>
+#include <signal.h>
 
 #define CMD_HOST 0x03
 #define CMD_JOIN 0x04
@@ -13,6 +14,8 @@
 #define GAME_ONE 0x10
 #define GAME_TWO 0x11
 #define GAME_THREE 0x12
+#define CMD_READY 0x13
+#define CMD_EXIT 0x14
 
 SOCKET soc;
 struct sockaddr_in ser;
@@ -22,6 +25,18 @@ int maxnum;
 int pmax;
 int totalnumber = 0;
 char hostcmd[2];
+char readycmd[2];
+
+
+
+int handler_clientexit(){
+
+    char cmd[2];
+    sprintf(cmd,"%c%d", CMD_EXIT, 0);
+    send(soc,cmd,2,0);
+    exit(0);
+
+}
 
 void home_start(){
     printf("\n");
@@ -90,17 +105,22 @@ int sock_start(){
 int hostmode(){
     char pname[20];
     char max_player[20];
+    signal(SIGBREAK, &handler_clientexit);
 
     printf("[You're host player!...Creating lobby]\n");
     printf("Please configure lobby setting\n\n");
 
     int sum_players = check_num_player();
     int sum_net = htonl(sum_players);
+    handler_clientready();
     send(soc, (const char*)&sum_net, sizeof(sum_players),0);
+
 
     int max_num = num_for_game_over();
     int max_net = htonl(max_num);
+    handler_clientready();
     send(soc, (const char*)&max_net, sizeof(max_num), 0);
+
 
     printf("\n[Lobby successfully configured!] \n\n");
 
@@ -291,9 +311,6 @@ int game_start(){
 
 }
 
-
-
-
 int check_gamenum(){
 
         int range_input = 0;
@@ -355,7 +372,24 @@ int endmode_host(){
 
 }
 
+int handler_clientready(){
+
+    int handler = send(soc, readycmd, 2, 0);
+    if((handler == 0) || (handler == SOCKET_ERROR)){
+        system("cls");
+        printf("\n[Error: Server Disconnected, Game will restart soon.]\n\n\n");
+        WSACleanup();
+        Sleep(7500);
+        system("cls");
+        main();
+    }
+    return 0;
+
+}
+
 int main(){
+
+    sprintf(readycmd,"%c%d",CMD_READY,0);
     home_start();
     sock_start();
     while(recv(soc,hostcmd,2,0) > 0)

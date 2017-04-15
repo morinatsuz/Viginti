@@ -4,6 +4,7 @@
 #include <winsock2.h>
 #include <stdio.h>
 #include <windows.h>
+#include <signal.h>
 
 //Define section for short command with server//
 #define CMD_HOST 0x03
@@ -16,6 +17,8 @@
 #define GAME_ONE 0x10
 #define GAME_TWO 0x11
 #define GAME_THREE 0x12
+#define CMD_READY 0x13
+#define CMD_EXIT 0x14
 
 //Global Variable//
 struct sockaddr_in ser; //Struct of server information
@@ -77,12 +80,14 @@ int hostmode(){
 			int sum_net;
 			int maxnum_net;
 			printf("[Lobby Setting]\n\n");
+			exit_handler(1);
             while(recv(soc[1], &sum_net, sizeof(sum_net), 0) > 0)
             {
                 max_player = ntohl(sum_net);
                 printf("- Player required: %d\n", max_player);
                 break;
             }
+            exit_handler(1);
             while(recv(soc[1], &maxnum_net, sizeof(maxnum_net), 0) > 0)
             {
                 maxnum = ntohl(maxnum_net);
@@ -239,7 +244,6 @@ int distri_waitmode(int turn){
 
 }
 
-
 int socketstart(){
 
 	printf("\n\n[Viginti Server Module Initializing...]\n\n");
@@ -293,3 +297,27 @@ int socketstart(){
 
     }
 
+int exit_handler(int turn){
+
+    char cmd[2];
+    while(recv(soc[turn], cmd, 2, 0) > 0){
+        if(cmd[0] == CMD_EXIT){
+            printf("\n[Player %d exit!, Initiate Winsock Cleanup...]\n", turn);
+            WSACleanup();
+            printf("- Unload Winsock 2.2");
+            int i = 0;
+            for(i = 0 ; i < 6 ; i++){
+                printf("- Close socket %d\n", i);
+                closesocket(i);
+                num_players = 0;
+            }
+            printf("[Process successfully restart!, Rebooting server]");
+            Sleep(3000);
+            system("cls");
+            main();
+        }
+        if(cmd[0] == CMD_READY){
+            return 0;
+        }
+    }
+}

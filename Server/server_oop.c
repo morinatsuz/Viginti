@@ -219,6 +219,7 @@ int gamemode(){
     send(soc[turn], cmd, 2, 0);
     distri_waitmode(turn);
     printf("[Turn %d | Total Number %d / %d | Player %d - Waiting for input...]\n", totalturn, totalnumber, maxnum, turn);
+    exit_handler(turn);
     while(recv(soc[turn], recvcmd, 2, 0) > 0){
         if(recvcmd[0] == GAME_ONE){
             totalnumber +=1;
@@ -235,6 +236,7 @@ int gamemode(){
 
         }
     printf("[Distro mode]\n");
+    handler_serverready();
     int i;
     for(i = 1; i < max_player+1 ; i++){
         printf("Tell Player %d last input\n", i);
@@ -363,6 +365,7 @@ int exit_handler(int turn){
     while(recv(soc[turn], cmd, 2, 0) > 0){
         if(cmd[0] == CMD_EXIT){
             printf("\n[Player %d exit!, Initiate Winsock Cleanup...]\n", turn);
+            handler_serverexit();
             WSACleanup();
             printf("- Unload Winsock 2.2");
             int i = 0;

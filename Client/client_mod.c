@@ -171,6 +171,7 @@ int hostmode(){
     handler_clientready();
     send(soc, (const char*)&max_net, sizeof(max_num), 0);
 
+    playerno = 1;
 
     printf("\n[Lobby successfully configured!] \n\n");
 
@@ -297,6 +298,7 @@ int game_start(){
     while(recv(soc, cmd, 2, 0) > 0){
         if(cmd[0] == CMD_TURN){
             int feedback = check_gamenum();
+            handler_clientready();
             if(feedback == 1){
                 char feedbackcmd[2];
                 sprintf(feedbackcmd,"%c%d",GAME_ONE,0);
@@ -322,6 +324,7 @@ int game_start(){
 
         if(cmd[0] == CMD_WAIT){
             printf("Waiting input from server\n");
+            handler_checkactive();
             exit_handler();
             char recvcmd[2];
             while(recv(soc, recvcmd, 2, 0) > 0){

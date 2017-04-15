@@ -19,6 +19,7 @@
 #define GAME_THREE 0x12
 #define CMD_READY 0x13
 #define CMD_EXIT 0x14
+#define CMD_ACTIVE 0x15
 
 //Global Variable//
 struct sockaddr_in ser; //Struct of server information
@@ -34,20 +35,22 @@ char readycmd[2];
 
 SOCKET soc[5]; //Socket for player 4+1
 
-int handler_serverready(int player){
+int handler_checkactive(int player){
 
-    int handler = send(soc[player], readycmd, 2, 0);
+    int handler;
+    char cmd[2];
+    sprintf(cmd,"%c%d", CMD_ACTIVE, 0);
+    handler = send(soc[player], cmd, 2, 0);
     if((handler == 0) || (handler == SOCKET_ERROR)){
-        system("cls");
-        printf("\n[Error: Player %d disconnected, Server will restart soon.]\n", player);
-        WSACleanup();
-        Sleep(7500);
-        system("cls");
-        main();
+        return 0;
     }
-    return 0;
+    else{
+        return 1;
+    }
+
 
 }
+
 
 int handler_serverexit(){
 
@@ -57,8 +60,26 @@ int handler_serverexit(){
     for(i = 0;i < 6;i++){
         send(soc[i],cmd,2,0);
     }
-    exit(0);
+}
 
+int handler_serverready(){
+
+    int i;
+    for (i = 1; i < max_player+1 ; i++){
+        int check = handler_checkactive(i);
+        if(check == 0){
+            system("cls");
+            printf("\n[Error: Player %d disconnected, Server will restart soon.]\n", i);
+            handler_serverexit();
+            WSACleanup();
+            Sleep(7500);
+            system("cls");
+            main();
+        }
+    }
+    for (i = 1; i < max_player+1 ; i++){
+        send(soc[i], readycmd, 2, 0);
+    }
 }
 
 int main(){
@@ -174,6 +195,7 @@ int gamemode(){
     printf("[Game is starting...]\n\n");
     int i;
     char startcmd[2];
+    handler_serverready();
     sprintf(startcmd,"%c%d",CMD_START,0);
     for (i = 1 ; i < max_player+1 ; i++){
         printf("[Player %d starting...]\n", i);

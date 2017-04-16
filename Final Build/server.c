@@ -46,7 +46,7 @@ int handler_checkactive(int player){
         return 0;
     }
     else{
-        printf("Player %d active\n", player);
+        printf(">> Player %d still active\n", player);
         return 1;
     }
 
@@ -70,12 +70,19 @@ int handler_serverready(){
     for (i = 1; i < max_player+1 ; i++){
         int check = handler_checkactive(i);
         if(check == 0){
-            //system("cls");
-            printf("\n[Error: Player %d disconnected, Server will restart soon.]\n", i);
+
+            printf("\n[Error: Player %d disconnected, Server will restart soon...]\n", i);
             handler_serverexit();
+            printf("\n");
             WSACleanup();
-            Sleep(7500);
-            //system("cls");
+            printf("- Unload Winsock 2.2");
+            printf("\n");
+            int i = 0;
+            for(i = 0 ; i < 6 ; i++){
+                printf("- Close socket %d\n", i);
+                closesocket(i);
+            }
+            Sleep(3000);
             num_players = 0;
             max_player = 0;
             maxnum = 0;
@@ -92,8 +99,11 @@ int main(){
     SMALL_RECT windowSize = {0 , 0 , 69, 20}; //change the values
     SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &windowSize);
     sprintf(readycmd,"%c%d",CMD_READY,0);
+    HANDLE hStdout;
+    hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    cls(hStdout);
     header();
-    //clear();
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0B);
     SMALL_RECT windowSize2 = {0 , 0 , 69, 50}; //change the values
     SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &windowSize2);
     socketstart();
@@ -104,8 +114,7 @@ int main(){
 
 }
 
-void cls( HANDLE hConsole )
-{
+void cls( HANDLE hConsole ){
    COORD coordScreen = { 0, 0 };    // home for the cursor
    DWORD cCharsWritten;
    CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -183,16 +192,9 @@ void header(){
 
 }
 
-
 int hostmode(){
 
-    HANDLE hStdout;
-
-    hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    cls(hStdout);
-
-	printf("Waiting for Host Player........");
+	printf("\n\n[Waiting for Host Player...]");
 
 	while(num_players != 1){
 		soc[1] = accept(soc[0],&cli[num_players],&addr_size); //bind incoming connection to socket
@@ -205,7 +207,7 @@ int hostmode(){
 		}
 		else
 		{
-			printf("Host Player joined!\n\n");
+			printf("\n>> Host Player joined!\n\n");
 			char cmd[2]; //char for command to communicate with client
 			sprintf(cmd,"%c%d",CMD_HOST,0);
 			send(soc[1],cmd,2,0);
@@ -219,14 +221,14 @@ int hostmode(){
             while(recv(soc[1], &sum_net, sizeof(sum_net), 0) > 0)
             {
                 max_player = ntohl(sum_net);
-                printf("- Player required: %d\n", max_player);
+                printf(">> Player required: %d\n", max_player);
                 break;
             }
             exit_handler(1);
             while(recv(soc[1], &maxnum_net, sizeof(maxnum_net), 0) > 0)
             {
                 maxnum = ntohl(maxnum_net);
-                printf("- Ending number: %d\n", maxnum);
+                printf(">> Ending number: %d\n\n", maxnum);
                 break;
             }
 
@@ -236,8 +238,9 @@ int hostmode(){
 
 int waitmode(){
 
-	printf("\n[Waiting for player...]\n\n");
-	printf("Player 1: Joined (Host)\n");
+    printf("------------------------------------------------");
+	printf("\n\n[Waiting for player...]\n\n");
+	printf(">> Player 1: Joined (Host)\n");
 	signal(SIGBREAK, &handler_serverexit);
 
 	while(num_players < max_player ){
@@ -255,7 +258,7 @@ int waitmode(){
 			sprintf(cmd,"%c%d",CMD_JOIN,0);
 			send(soc[num_players+1],cmd,2,0);
 
-            printf("Player %d: Joined\n", num_players+1);
+            printf(">> Player %d: Joined\n", num_players+1);
 			int pnum_net = htonl(num_players+1);
 
 			maxnum_net = htonl(max_player);
@@ -275,45 +278,48 @@ int waitmode(){
 
 int gamemode(){
 
-    printf("\n--------------------------------------------------\n");
+    printf("\n------------------------------------------------");
     printf("[Game is starting...]\n\n");
     int i;
     char startcmd[2];
     handler_serverready();
+    printf("\n");
     sprintf(startcmd,"%c%d",CMD_START,0);
     for (i = 1 ; i < max_player+1 ; i++){
-        printf("[Player %d starting...]\n", i);
+        printf(">> Player %d starting...\n", i);
         send(soc[i], startcmd, 2, 0);
     }
+    printf("\n");
 
     int totalnumber = 0;
     int turn = 1;
     int totalturn = 1;
 
-   while(1){
+    while(1){
     char cmd[2];
     char recvcmd[2];
     handler_serverready();
+    printf("\n");
     exit_handler();
 
     sprintf(cmd,"%c%d",CMD_TURN,0);
     send(soc[turn], cmd, 2, 0);
     distri_waitmode(turn);
-    printf("[Turn %d | Total Number %d / %d | Player %d - Waiting for input...]\n", totalturn, totalnumber, maxnum, turn);
+    printf("\n");
+    printf("[Turn %d | Total Number %d / %d | Player %d - Waiting for input...]\n\n", totalturn, totalnumber, maxnum, turn);
     exit_handler(turn);
     while(recv(soc[turn], recvcmd, 2, 0) > 0){
         if(recvcmd[0] == GAME_ONE){
             totalnumber +=1;
-            printf("-> Player %d | Input 1 | Total %d\n", turn, totalnumber);
+            printf(">> Player %d input 1 | Total %d/%d\n", turn, totalnumber, maxnum);
         }
         if(recvcmd[0] == GAME_TWO){
             totalnumber +=2;
-            printf("-> Player %d | Input 2 | Total %d\n", turn, totalnumber);
-
+            printf(">> Player %d input 2 | Total %d/%d\n", turn, totalnumber, maxnum);
         }
         if(recvcmd[0] == GAME_THREE){
             totalnumber +=3;
-            printf("-> Player %d | Input 3 | Total %d\n", turn, totalnumber);
+            printf(">> Player %d input 3 | Total %d/%d\n", turn, totalnumber, maxnum);
 
         }
 
@@ -321,13 +327,15 @@ int gamemode(){
         end_mode(turn);
     }
 
-    printf("[Distro mode]\n");
+    printf("\n");
     handler_serverready();
+    printf("\n");
     int i;
     for(i = 1; i < max_player+1 ; i++){
-        printf("Tell Player %d last input\n", i);
+        printf(">> Tell Player %d last input\n", i);
         send(soc[i], recvcmd, 2, 0);
         }
+    printf("\n");
     turn++;
     totalturn++;
     if(turn > max_player){
@@ -344,12 +352,30 @@ int gamemode(){
 int end_mode(int loser){
 
     char losecmd[2];
+    printf("\n");
     handler_serverready();
+    printf("\n");
     sprintf(losecmd,"%c%d",CMD_LOSE,0);
     send(soc[loser],losecmd,2,0);
     distri_endmode(loser);
-    printf("Player %d lose!, game ending\n", loser);
-    getch();
+    printf("\n");
+    printf("[Player %d lose!, game ending...]\n", loser);
+    printf("\n");
+    WSACleanup();
+    printf(">> Unload Winsock 2.2");
+    printf("\n");
+    int i = 0;
+    for(i = 0 ; i < 6 ; i++){
+            printf(">> Close socket %d\n", i);
+            closesocket(i);
+        }
+    num_players = 0;
+    max_player = 0;
+    maxnum = 0;
+    printf("\n");
+    printf("[Process successfully restart!, Rebooting server]");
+    Sleep(3000);
+    main();
 
 }
 
@@ -359,11 +385,9 @@ int distri_waitmode(int turn){
 
     char waitcmd[2];
     sprintf(waitcmd,"%c%d",CMD_WAIT,0);
-    printf("%d", turn);
 
     if(turn == 1){
         int i;
-        printf("Least Distro mode!\n");
         for(i = 2 ; i < max_player+1 ; i++){
             send(soc[i], waitcmd, 2, 0);
             printf("Tell Player %d to wait\n", i);
@@ -374,7 +398,6 @@ int distri_waitmode(int turn){
     if(turn == max_player){
 
         int i;
-        printf("Max Distro mode!\n");
         for(i = max_player-1 ; i > 0 ; i--){
             send(soc[i], waitcmd, 2, 0);
             printf("Tell Player %d to wait\n", i);
@@ -385,7 +408,6 @@ int distri_waitmode(int turn){
     else{
 
         int i,j;
-        printf("Between Distro mode!\n");
 
         for(i = turn+1 ; i < max_player+1 ; i++){
             send(soc[i], waitcmd, 2, 0);
@@ -410,11 +432,9 @@ int distri_endmode(int turn){
 
     char wincmd[2];
     sprintf(wincmd,"%c%d",CMD_WIN,0);
-    printf("%d", turn);
 
     if(turn == 1){
         int i;
-        printf("Least Distro mode!\n");
         for(i = 2 ; i < max_player+1 ; i++){
             send(soc[i], wincmd, 2, 0);
             printf("Tell Player %d to win\n", i);
@@ -425,7 +445,6 @@ int distri_endmode(int turn){
     if(turn == max_player){
 
         int i;
-        printf("Max Distro mode!\n");
         for(i = max_player-1 ; i > 0 ; i--){
             send(soc[i], wincmd, 2, 0);
             printf("Tell Player %d to win\n", i);
@@ -436,7 +455,6 @@ int distri_endmode(int turn){
     else{
 
         int i,j;
-        printf("Between Distro mode!\n");
 
         for(i = turn+1 ; i < max_player+1 ; i++){
             send(soc[i], wincmd, 2, 0);
@@ -457,11 +475,15 @@ int distri_endmode(int turn){
 
 int socketstart(){
 
+    HANDLE hStdout;
+    hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    cls(hStdout);
+
 	printf("\n\n[Viginti Server Module Initializing...]\n\n");
 
 	WSADATA w; //Initialize Winsock Libraly
 
-	printf("- Initialize Winsock 2.2...");
+	printf(">> Initialize Winsock 2.2...");
 
 	int error = WSAStartup(0x0202,&w); //Winsock error check
 	if (error)
@@ -485,7 +507,7 @@ int socketstart(){
 	ser.sin_addr.s_addr = htonl (INADDR_ANY);
 
 	//Server socket binding
-	printf("- Binding Socket...");
+	printf(">> Binding Socket...");
 	if (bind(soc[0],(LPSOCKADDR)&ser,sizeof(ser))==SOCKET_ERROR)
 	{
 		printf("Error:  Unable to bind socket!\n");
@@ -495,7 +517,7 @@ int socketstart(){
 	printf(" [PASS]\n");
 
     //Server socket listening
-	printf("- Listening Check...");
+	printf(">> Listening Check...");
 	if (listen(soc[0],1)==SOCKET_ERROR)
 	{
 		printf("Error:  Unable to listen!\n");
@@ -503,8 +525,9 @@ int socketstart(){
 		return 0;
 	}
 	printf(" [PASS]\n\n");
-	printf("----------------------------------");
-    printf("Server Successfully Initialize!\n\n");
+	printf("[Server Successfully Initialize!]\n\n");
+	printf("------------------------------------------------");
+
 
     }
 
@@ -513,19 +536,22 @@ int exit_handler(int turn){
     char cmd[2];
     while(recv(soc[turn], cmd, 2, 0) > 0){
         if(cmd[0] == CMD_EXIT){
-            printf("\n[Player %d exit!, Initiate Winsock Cleanup...]\n", turn);
+            printf("\n[Player %d disconnected!, Server will restart soon...]\n", turn);
             handler_serverexit();
+            printf("\n");
             WSACleanup();
             printf("- Unload Winsock 2.2");
+            printf("\n");
             int i = 0;
             for(i = 0 ; i < 6 ; i++){
                 printf("- Close socket %d\n", i);
                 closesocket(i);
-                num_players = 0;
             }
-            printf("[Process successfully restart!, Rebooting server]");
+            num_players = 0;
+            max_player = 0;
+            maxnum = 0;
+            printf("\n[Process successfully restart!, Rebooting server]");
             Sleep(3000);
-            system("cls");
             main();
         }
         if(cmd[0] == CMD_READY){
@@ -534,43 +560,3 @@ int exit_handler(int turn){
     }
 }
 
-void game_header(int mode){
-
-    if(mode == 1){
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x1F);
-        printf("                                                                      \n");
-        printf(" Viginti Server | Version 1.0 | Status : Initializing                 \n");
-        printf("                                                                      \n");
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
-    }
-    if(mode == 2){
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x2F);
-        printf("                                                                      \n");
-        printf(" Viginti Server | Version 1.0 | Status : Online / Host mode           \n");
-        printf("                                                                      \n");
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
-    }
-    if(mode == 3){
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x2F);
-        printf("                                                                      \n");
-        printf(" Viginti Server | Version 1.0 | Status : Online / Wait mode           \n");
-        printf("                                                                      \n");
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x5F);
-        printf("               |                    |                                 \n");
-        printf(" Lobby setting | Ending number : %d | Player Required : %d             \n", maxnum, max_player);
-        printf("               |                    |                                 \n");
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
-    }
-    if(mode == 4){
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x2F);
-        printf("                                                                      \n");
-        printf(" Viginti Server | Version 1.0 | Status : Online / Playing             \n");
-        printf("                                                                      \n");
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x5F);
-        printf("                |                    |                                 \n");
-        printf(" Lobby setting  | Ending number : %d | Player Required : %d             \n", maxnum, max_player);
-        printf("                |                    |                                 \n");
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
-    }
-
-}

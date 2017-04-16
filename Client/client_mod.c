@@ -16,6 +16,8 @@
 #define GAME_THREE 0x12
 #define CMD_READY 0x13
 #define CMD_EXIT 0x14
+#define CMD_ACTIVE 0x15
+
 
 SOCKET soc;
 struct sockaddr_in ser;
@@ -248,18 +250,32 @@ int waitinturn(){
 
     printf("Wait in turn...\n");
     char recvcmd[2];
+    handler_checkactive();
+    exit_handler();
     while(recv(soc, recvcmd, 2, 0) > 0){
         printf("Hello from server!\n");
         if(recvcmd[0] == GAME_ONE){
                 totalnumber += 1;
+                printf("Total number +1\n");
             }
         if(recvcmd[0] == GAME_TWO){
                 totalnumber += 2;
+                printf("Total number +2\n");
             }
         if(recvcmd[0] == GAME_ONE){
                 totalnumber += 3;
+                printf("Total number +3\n");
             }
-    break;
+        if(recvcmd[0] == CMD_ACTIVE){
+                printf("Active command\n");
+        }
+        if(recvcmd[0] == CMD_READY){
+                printf("Ready command\n");
+        }
+        if(recvcmd[0] == CMD_EXIT){
+                printf("Exit command\n");
+        }
+        break;
     }
 }
 

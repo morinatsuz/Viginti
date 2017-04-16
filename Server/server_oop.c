@@ -45,7 +45,7 @@ int handler_checkactive(int player){
         return 0;
     }
     else{
-        printf("Player %d active", player);
+        printf("Player %d active\n", player);
         return 1;
     }
 
@@ -59,6 +59,7 @@ int handler_serverexit(){
     int i;
     for(i = 0;i < 6;i++){
         send(soc[i],cmd,2,0);
+        printf("Tell player %d to exit\n", i);
     }
 }
 
@@ -68,12 +69,12 @@ int handler_serverready(){
     for (i = 1; i < max_player+1 ; i++){
         int check = handler_checkactive(i);
         if(check == 0){
-            system("cls");
+            //system("cls");
             printf("\n[Error: Player %d disconnected, Server will restart soon.]\n", i);
             handler_serverexit();
             WSACleanup();
             Sleep(7500);
-            system("cls");
+            //system("cls");
             num_players = 0;
             max_player = 0;
             maxnum = 0;

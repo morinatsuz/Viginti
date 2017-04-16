@@ -43,19 +43,9 @@ int open_topic(int num_topic);
 int handler_checkactive(){
 
     char cmd[2];
-    printf("wait for check active\n");
     while(recv(soc, cmd, 2, 0) > 0){
         if (cmd[0] == CMD_EXIT){
             restart();
-        }
-        if (cmd[0] == CMD_READY){
-            printf("Ready recv\n");
-        }
-        if (cmd[0] == CMD_ACTIVE){
-            printf("Active recv\n");
-        }
-        if (cmd[0] == CMD_WAIT){
-            printf("Wait recv\n");
         }
         break;
     }
@@ -66,8 +56,14 @@ int restart(){
 
     printf("\n[Server disconnect!, Initiate Winsock Cleanup...]\n");
     WSACleanup();
-    printf("- Unload Winsock 2.2");
-    printf("[Process successfully restart!, Rebooting server]");
+    printf(">> Unload Winsock 2.2");
+    int playerno = 0;
+    int maxnum = 0;
+    int pmax = 0;
+    int totalnumber = 0;
+    int totalturn = 1;
+    int turn = 1;
+    printf("[Process successfully restart!, Restart...]");
     Sleep(3000);
     system("cls");
     main();
@@ -76,28 +72,24 @@ int restart(){
 
 int exit_handler(){
 
-    printf("using handler\n");
     char cmd[2];
     while(recv(soc, cmd, 2, 0) > 0){
         if(cmd[0] == CMD_EXIT){
             printf("\n[Server disconnect!, Initiate Winsock Cleanup...]\n");
             WSACleanup();
-            printf("- Unload Winsock 2.2");
+            printf(">> Unload Winsock 2.2\n\n");
             printf("[Process successfully restart!, Rebooting server]");
             Sleep(3000);
             system("cls");
             main();
         }
         if(cmd[0] == CMD_READY){
-            printf("ready recv\n");
             break;
         }
         if(cmd[0] == CMD_ACTIVE){
-            printf("active recv\n");
             break;
         }
         if(cmd[0] == CMD_WAIT){
-            printf("wait recv\n");
         }
     }
 }
@@ -111,24 +103,20 @@ int handler_clientexit(){
 
 }
 
-void home_start(){
-    printf("\n");
-    printf(" ####################################################################\n");
-    printf(" ##  ____    ____      _______        ___    __   _________        ##\n");
-    printf(" ##  \\   \\  /   / __  | ______|  __  |   \\  |  | |         |  __   ##\n");
-    printf(" ##   \\   \\/   / |  | | | ____  |  | |    \\ |  | |__     __| |  |  ##\n");
-    printf(" ##    \\      /  |  | | | |__ | |  | |  |\\ \\|  |    |   |    |  |  ##\n");
-    printf(" ##     \\    /   |  | | |___| | |  | |  | \\    |    |   |    |  |  ##\n");
-    printf(" ##      \\__/    |__| |_______| |__| |__|  \\___|    |___|    |__|  ##\n");
-    printf(" ##                                                                ##\n");
-    printf(" ####################################################################\n\n");
-    printf(" Viginti [Multiplayer Version] - Client Module 0.1A (Debug build)\n\n");
-    printf("[Client Module Initializing...]\n\n");
-}
-
 int sock_start(){
 
-    printf("- Initialize Winsock 2.2...");
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
+    printf(" \n\n\t\t####################################################################\n");
+    printf(" \t\t##  ____    ____      _______        ___    __   _________        ##\n");
+    printf(" \t\t##  \\   \\  /   / __  | ______|  __  |   \\  |  | |         |  __   ##\n");
+    printf(" \t\t##   \\   \\/   / |  | | | ____  |  | |    \\ |  | |__     __| |  |  ##\n");
+    printf(" \t\t##    \\      /  |  | | | |__ | |  | |  |\\ \\|  |    |   |    |  |  ##\n");
+    printf(" \t\t##     \\    /   |  | | |___| | |  | |  | \\    |    |   |    |  |  ##\n");
+    printf(" \t\t##      \\__/    |__| |_______| |__| |__|  \\___|    |___|    |__|  ##\n");
+    printf(" \t\t##                                                                ##\n");
+    printf(" \t\t####################################################################\n");
+    printf(" \n                                          - Online Mode -");
+    printf("\n\n                                [ Initialize Winsock 2.2... ]");
 
     WSADATA w;
 	int error = WSAStartup(0x0202,&w);
@@ -149,15 +137,14 @@ int sock_start(){
 	}
 
     int ip1 = 0, ip2 = 0, ip3 = 0, ip4 = 0;
-    printf("Enter server IP\n");
+    printf(" \n                           >> Please enter server IP (XXX.XXX.XXX.XXX) <<\n >> ");
     scanf("%d.%d.%d.%d", &ip1, &ip2, &ip3, &ip4);
     char ipaddr[16];
     sprintf(ipaddr,"%d.%d.%d.%d",(int)ip1,(int)ip2,(int)ip3,(int)ip4);
-    printf("%s", ipaddr);
 
 	soc = socket (AF_INET,SOCK_STREAM,0);
 
-	printf("- Connecting to server...");
+	printf("\n\n                                 [ Connecting to server... ]");
 
     ser.sin_family = AF_INET;
     ser.sin_port = htons (5555);	// RPSS port is 5555
@@ -177,8 +164,8 @@ int sock_start(){
     }
 
     printf(" [PASS]\n\n");
-    printf("[Server successfully connect! - Starting game...]\n\n");
-    printf("----------------------------------------\n\n");
+    printf("                          [Server successfully connect! - Starting game...]\n\n");
+    printf("----------------------------------------------------------------------------------------------------\n\n");
 
 }
 
@@ -187,8 +174,11 @@ int hostmode(){
     char max_player[20];
     signal(SIGBREAK, &handler_clientexit);
 
-    printf("[You're host player!...Creating lobby]\n");
-    printf("Please configure lobby setting\n\n");
+    printf("                                [You're host player!...Creating lobby]\n");
+    printf("                                    Please configure lobby setting\n\n");
+    printf("                                   Press any key to start configure");
+    getch();
+
 
     int sum_players = check_num_player();
     pmax = sum_players;
@@ -205,14 +195,14 @@ int hostmode(){
     send(soc, (const char*)&max_net, sizeof(max_num), 0);
 
     playerno = 1;
-
-    printf("\n[Lobby successfully configured!] \n\n");
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
+    printf("\n>> Lobby successfully configured! \n\n");
 
     }
 
 int joinmode(){
 
-    printf("     Welcome to Viginti : Multiplayer Counting Game\n");
+    printf(">> Welcome to Viginti : Multiplayer Counting Game\n");
     printf("[Lobby setting |");
     int maxnum_net;
     int maxp_net;
@@ -229,7 +219,7 @@ int joinmode(){
     }
     while(recv(soc, &pnum_net, sizeof(pnum_net), 0) > 0){
             playerno = ntohl(pnum_net);
-            printf("\nYou're player %d", playerno);
+            printf("\n>> You're player %d", playerno);
             break;
     }
 }
@@ -237,7 +227,7 @@ int joinmode(){
 int waitmode(){
 
     char cmd[2];
-    printf("\n\n[Waiting for other players...]");
+    printf(">> Waiting for other players...\n");
     handler_checkactive();
     exit_handler();
     while(recv(soc, cmd, 2, 0) > 0){
@@ -249,23 +239,22 @@ int waitmode(){
 
 int waitinturn(){
 
-    printf("Wait in turn...\n");
+    printf(">> Waiting for other players turn...\n");
     char recvcmd[2];
     handler_checkactive();
     exit_handler();
     while(recv(soc, recvcmd, 2, 0) > 0){
-        printf("Hello from server!\n");
         if(recvcmd[0] == GAME_ONE){
                 totalnumber += 1;
-                printf("Total number +1\n");
+                printf(">> Player %d input 1 | Total %d/%d\n\n",turn,totalnumber,maxnum);
             }
         if(recvcmd[0] == GAME_TWO){
                 totalnumber += 2;
-                printf("Total number +2\n");
+                printf(">> Player %d input 2 | Total %d/%d\n\n",turn,totalnumber,maxnum);
             }
         if(recvcmd[0] == GAME_THREE){
                 totalnumber += 3;
-                printf("Total number +3\n");
+                printf(">> Player %d input 3 | Total %d/%d\n\n",turn,totalnumber,maxnum);
             }
         if(recvcmd[0] == CMD_WIN){
                 endmode_win();
@@ -280,7 +269,7 @@ int waitinturn(){
 
 int game_start(){
 
-    printf("\n\nGame is starting...");
+    printf("\n\nGame is starting...\n");
     char cmd[2];
     restart:
     if(turn > pmax){
@@ -288,10 +277,9 @@ int game_start(){
     }
     handler_checkactive();
     exit_handler();
-    printf("Process Restart!\n");
     while(recv(soc, cmd, 2, 0) > 0){
         if(cmd[0] == CMD_TURN){
-            printf("[Turn %d | Total number %d/%d]",totalturn, totalnumber, maxnum);
+            printf("  [Turn %d | Total number %d/%d]\n\n",totalturn, totalnumber, maxnum);
             int feedback = check_gamenum();
             handler_clientready();
             if(feedback == 1){
@@ -324,29 +312,28 @@ int game_start(){
         }
 
         if(cmd[0] == CMD_WAIT){
-            printf("Waiting input from server\n");
+            printf(">> Waiting for other players turn...\n\n");
             handler_checkactive();
             exit_handler();
             char recvcmd[2];
             while(recv(soc, recvcmd, 2, 0) > 0){
-                printf("Hello from server\n");
                 if(recvcmd[0] == GAME_ONE){
                         totalnumber += 1;
-                        printf("[Player %d input 1 | Total %d/%d]",turn,totalnumber,maxnum);
+                        printf(">> Player %d input 1 | Total %d/%d\n\n",turn,totalnumber,maxnum);
                         turn++;
                         totalturn++;
                         goto restart;
                 }
                 if(recvcmd[0] == GAME_TWO){
                         totalnumber += 2;
-                        printf("[Player %d input 2 | Total %d/%d]",turn,totalnumber,maxnum);
+                        printf(">> Player %d input 2 | Total %d/%d\n\n",turn,totalnumber,maxnum);
                         turn++;
                         totalturn++;
                         goto restart;
                 }
                 if(recvcmd[0] == GAME_THREE){
                         totalnumber += 3;
-                        printf("[Player %d input 3 | Total %d/%d]",turn,totalnumber,maxnum);
+                        printf(">> Player %d input 3 | Total %d/%d\n\n",turn,totalnumber,maxnum);
                         turn++;
                         totalturn++;
                         goto restart;
@@ -370,26 +357,24 @@ int check_gamenum(){
         int range_input = 0;
         char check_char;
 
-        printf("  |Player %d| Please Enter your range number (1-3) : ", playerno);
+        printf(">> |Player %d| Please Enter your range number (1-3) : ", playerno);
         while(((scanf("%d%c", &range_input, &check_char)!=2 || check_char!='\n') && clear_stdin()))
         {
-            system("cls");
             printf("\n\t\t!Notice! : Type of input ERROR\n");
             //printf("\n  NUMBER : %d / %d\n\n", check, num_over);
-            printf("  |Player %d| Please try again Enter your number type integer (1-3) : ", playerno);
+            printf(">> |Player %d| Please try again Enter your number type integer (1-3) : ", playerno);
         }
         printf("\n-------------------------------------------------------------------\n");
         while(range_input < 1 || range_input > 3)
         {
             printf("\n\t\t!Notice! : Out of range number\n");
             //printf("\n  NUMBER : %d / %d\n\n", check, num_over);
-            printf("  |Player %d| Please try again enter range number (1-3) : ", playerno);
+            printf(">> |Player %d| Please try again enter range number (1-3) : ", playerno);
             while(((scanf("%d%c", &range_input, &check_char)!=2 || check_char!='\n') && clear_stdin()))
             {
-                system("cls");
                 printf("\n\t\t!Notice! : Type of input ERROR\n");
                 //printf("\n  NUMBER : %d / %d\n\n", check, num_over);
-                printf("  |Player %d| Please try again Enter your number type integer (1-3) : ", playerno);
+                printf(">> |Player %d| Please try again Enter your number type integer (1-3) : ", playerno);
             }
             printf("\n-------------------------------------------------------------------\n");
         }
@@ -400,18 +385,48 @@ int check_gamenum(){
 
 int endmode_lose(){
 
-    printf("You lose! Player %d, Better luck next time.", playerno);
-    printf("Thank you for playing, Please come again");
-    getch();
+    system("cls");
+    system("MODE 100, 30");
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0C);
+    printf("\n");
+    printf("        _______                                      ___    ___                                     \n");
+    printf("       /   __  \\                                    |   \\  /   |                               \n");
+    printf("       |  |__|  | ====== ====== ==  == ==   ======  |  |\\\\//|  | ====== ====== ====== ==   ==  \n");
+    printf("       |      __| ||     ||     ||  || ||     ||    |  | \\/ |  | ||  ||   ||   ||     ||   ||  \n");
+    printf("       |      \\   ||==== ====== ||  || ||     ||    |  |    |  | ||==||   ||   ||     ||===||  \n");
+    printf("       |  |\\   \\  ||         || ||__|| ||     ||    |  |    |  | ||  ||   ||   ||     ||   || \n");
+    printf("       |__| \\___| ||==== ====== |====| ||==== ||    |__|    |__| ||  ||   ||   ||==== ==   ==  \n\n\n\n");
+    printf(" \t\t\t\t=====================================================\n");
+    printf(" \t\t\t\t=                                                   =\n");
+    printf(" \t\t\t\t=    Player %d you're lose!, Better luck next time   =\n", playerno);
+    printf(" \t\t\t\t=                                                   =\n");
+    printf(" \t\t\t\t=====================================================\n\n\n\n");
+    printf("----------------------------------------------------------------------------------------------------\n\n\n");
+    Sleep(2000);
     restart();
 
 }
 
 int endmode_win(){
 
-    printf("Congratulations! Player %d, You win the Viginti.\n", playerno);
-    printf("Thank you for playing, Please come again :D");
-    getch();
+    system("cls");
+    system("MODE 100, 30");
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
+    printf("\n");
+    printf("        _______                                      ___    ___                                     \n");
+    printf("       /   __  \\                                    |   \\  /   |                               \n");
+    printf("       |  |__|  | ====== ====== ==  == ==   ======  |  |\\\\//|  | ====== ====== ====== ==   ==  \n");
+    printf("       |      __| ||     ||     ||  || ||     ||    |  | \\/ |  | ||  ||   ||   ||     ||   ||  \n");
+    printf("       |      \\   ||==== ====== ||  || ||     ||    |  |    |  | ||==||   ||   ||     ||===||  \n");
+    printf("       |  |\\   \\  ||         || ||__|| ||     ||    |  |    |  | ||  ||   ||   ||     ||   || \n");
+    printf("       |__| \\___| ||==== ====== |====| ||==== ||    |__|    |__| ||  ||   ||   ||==== ==   ==  \n\n\n\n");
+    printf(" \t\t\t=========================================================\n");
+    printf(" \t\t\t=                                                       =\n");
+    printf(" \t\t\t=    Congratulations Player %d !, You won the Viginti.   =\n", playerno);
+    printf(" \t\t\t=                                                       =\n");
+    printf(" \t\t\t=========================================================\n\n\n\n");
+    printf("----------------------------------------------------------------------------------------------------\n\n\n");
+    Sleep(2000);
     restart();
 
 }
@@ -500,8 +515,10 @@ int open_topic(int num_topic)
         {
             main_offline();
         }
-        else if((strcmp(check, "2") == 0))
+        else if((strcmp(check, "2") == 0)){
+            system("cls");
             main_online();
+        }
         else
         {
             system("cls");
@@ -638,11 +655,11 @@ void playgame (int sum_players, int num_over)
             printf("       |      \\   ||==== ====== ||  || ||     ||    |  |    |  | ||==||   ||   ||     ||===||  \n");
             printf("       |  |\\   \\  ||         || ||__|| ||     ||    |  |    |  | ||  ||   ||   ||     ||   || \n");
             printf("       |__| \\___| ||==== ====== |====| ||==== ||    |__|    |__| ||  ||   ||   ||==== ==   ==  \n\n\n\n");
-            printf("     \t\t\t\t===================================\n");
-            printf("     \t\t\t\t=                                 =\n");
-            printf("     \t\t\t\t=  |Player %d| : YOU ARE LOSER !!! =\n", sequence);
-            printf("     \t\t\t\t=                                 =\n");
-            printf("     \t\t\t\t===================================\n\n\n\n");
+            printf("     \t\t\t=====================================================\n");
+            printf("     \t\t\t=                                                   =\n");
+            printf("     \t\t\t=    Player %d you're lose!, Better luck next time   =\n", sequence);
+            printf("     \t\t\t=                                                   =\n");
+            printf("     \t\t\t=====================================================\n\n\n\n");
             printf("----------------------------------------------------------------------------------------------------\n\n\n");
             break;
         }
@@ -688,23 +705,23 @@ int check_num_player()
     char check_char;
     system("cls");
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x09);
-    printf("\n\n\n\n\n\n\n\n\n\t\t\t\t\t+++++++++++++++++++++++\n");
-    printf("\t\t\t\t\t+                     +\n");
-    printf("\t\t\t\t\t+ ENTER SUM OF PLAYER +\n");
-    printf("\t\t\t\t\t+                     +\n");
-    printf("\t\t\t\t\t+++++++++++++++++++++++\n\n\n\n");
-    printf("\t\t\tEnter Integer 2-4 Player : ");
+    printf("\n\n\n\n\n\n\n\n\n\t\t\t\t\t+++++++++++++++++++++++++++++++\n");
+    printf("\t\t\t\t\t+                             +\n");
+    printf("\t\t\t\t\t+  How many players required? +\n");
+    printf("\t\t\t\t\t+                             +\n");
+    printf("\t\t\t\t\t++++++++++++++++++++++++++++++\n\n\n\n");
+    printf("\t\t\tEnter 2-4 Player : ");
     re_Intplayer:
     while(((scanf("%d%c", &sum_players, &check_char)!=2 || check_char!='\n') && clear_stdin()))
     {
         system("cls");
         printf("\n\n\n\n\n\n\n\n\t\t\t    !Notice! : Input Type Of Sum Players ERROR\n\n\n");
-        printf("\t\t\t\t\t+++++++++++++++++++++++\n");
-        printf("\t\t\t\t\t+                     +\n");
-        printf("\t\t\t\t\t+ ENTER SUM OF PLAYER +\n");
-        printf("\t\t\t\t\t+                     +\n");
-        printf("\t\t\t\t\t+++++++++++++++++++++++\n\n\n\n");
-        printf("\t\t\tPlease Try again Enter Integer 2-4 player : ");
+        printf("\n\n\n\n\n\n\n\n\n\t\t\t\t\t+++++++++++++++++++++++++++++++\n");
+        printf("\t\t\t\t\t+                             +\n");
+        printf("\t\t\t\t\t+  How many players required? +\n");
+        printf("\t\t\t\t\t+                             +\n");
+        printf("\t\t\t\t\t++++++++++++++++++++++++++++++\n\n\n\n");
+        printf("\t\t\tPlease Try again enter 2-4 player : ");
         goto re_Intplayer;
     }
 
@@ -712,12 +729,12 @@ int check_num_player()
     {
         system("cls");
         printf("\n\n\n\n\n\n\n\n\t\t\t    !Notice! : Number For Sum Players Out Of Range\n\n\n");
-        printf("\t\t\t\t\t+++++++++++++++++++++++\n");
-        printf("\t\t\t\t\t+                     +\n");
-        printf("\t\t\t\t\t+ ENTER SUM OF PLAYER +\n");
-        printf("\t\t\t\t\t+                     +\n");
-        printf("\t\t\t\t\t+++++++++++++++++++++++\n\n\n\n");;
-        printf("\t\t\tPlease Try Again Enter Integer 2-4 player : ");
+        printf("\n\n\n\n\n\n\n\n\n\t\t\t\t\t+++++++++++++++++++++++++++++++\n");
+        printf("\t\t\t\t\t+                             +\n");
+        printf("\t\t\t\t\t+  How many players required? +\n");
+        printf("\t\t\t\t\t+                             +\n");
+        printf("\t\t\t\t\t++++++++++++++++++++++++++++++\n\n\n\n");
+        printf("\t\t\tPlease Try again enter 2-4 player : ");
         goto re_Intplayer;
     }
     return sum_players;
@@ -730,7 +747,7 @@ int num_for_game_over()
     char check_char;
     printf("\n\n\n\n\n\n\n\n\n\t\t\t\t+++++++++++++++++++++++++++++++++++++\n");
     printf("\t\t\t\t+                                   +\n");
-    printf("\t\t\t\t+ ENRTER NUMBER FOR CHECK END GAME  +\n");
+    printf("\t\t\t\t+      Enter your ending number     +\n");
     printf("\t\t\t\t+                                   +\n");
     printf("\t\t\t\t+++++++++++++++++++++++++++++++++++++\n\n\n\n");
     printf("\t\t\tPlease Enter Integer For Check Game Over : ");
@@ -739,9 +756,9 @@ int num_for_game_over()
     {
         system("cls");
         printf("\n\n\n\n\n\n\n\n\t\t\t!Notice! : Number For Check Game over is not correct\n\n\n");
-        printf("\t\t\t\t+++++++++++++++++++++++++++++++++++++\n");
+        printf("\n\n\n\n\n\n\n\n\n\t\t\t\t+++++++++++++++++++++++++++++++++++++\n");
         printf("\t\t\t\t+                                   +\n");
-        printf("\t\t\t\t+ ENRTER NUMBER FOR CHECK END GAME  +\n");
+        printf("\t\t\t\t+      Enter your ending number     +\n");
         printf("\t\t\t\t+                                   +\n");
         printf("\t\t\t\t+++++++++++++++++++++++++++++++++++++\n\n\n\n");
         printf("\t\tPlease Try Again Enter Integer For Check Game Over : ");
@@ -752,14 +769,15 @@ int num_for_game_over()
     {
         system("cls");
         printf("\n\n\n\n\n\n\n\n\t\t\t!Notice! : Number For Check Game over Out Of Range\n\n\n");
-        printf("\t\t\t\t+++++++++++++++++++++++++++++++++++++\n");
+        printf("\n\n\n\n\n\n\n\n\n\t\t\t\t+++++++++++++++++++++++++++++++++++++\n");
         printf("\t\t\t\t+                                   +\n");
-        printf("\t\t\t\t+ ENRTER NUMBER FOR CHECK END GAME  +\n");
+        printf("\t\t\t\t+      Enter your ending number     +\n");
         printf("\t\t\t\t+                                   +\n");
         printf("\t\t\t\t+++++++++++++++++++++++++++++++++++++\n\n\n\n");
         printf("\tPlease Try Again Enter Integer For Check Game Over (Number >= 20) : ");
         goto re_checkIntNover;
     }
+    system("cls");
     return num_over;
 }
 
@@ -773,8 +791,8 @@ int main_offline()
 
 int main_online()
 {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0B);
     sprintf(readycmd,"%c%d",CMD_READY,0);
-    home_start();
     sock_start();
     while(recv(soc,hostcmd,2,0) > 0)
     {

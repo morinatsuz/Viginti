@@ -88,9 +88,12 @@ int handler_serverready(){
 
 int main(){
 
-    sprintf(readycmd,"%c%d",CMD_READY,0);
-    socketstart();
+    system("MODE 70, 20");
     header();
+    sprintf(readycmd,"%c%d",CMD_READY,0);
+    system("cls");
+    system("MODE 70, 40");
+    socketstart();
     hostmode();
     waitmode();
     gamemode();
@@ -101,12 +104,29 @@ int main(){
 void header(){
 
     //Welcome Message//
-    printf("[                      Viginti Server Module                     ]\n");
-    printf("[        Version 0.1A  Developed by Viginti Development Team     ]\n\n\n");
-    printf("As part of Computer Programming Project 2017\n\n");
-    printf("Faculty of Information Technology\n");
-    printf("King Mongkut's Institute of Technology Ladkrabang\n\n");
-	printf("----------------------------------\n\n");
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0xF1);
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                        Viginti Server Module                         \n");
+    printf("          Version 1.0A  Developed by Viginti Development Team         \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("             As part of Computer Programming Project 2017             \n");
+    printf("                                                                      \n");
+    printf("                   Faculty of Information Technology                  \n");
+    printf("           King Mongkut's Institute of Technology Ladkrabang          \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    printf("                                                                      \n");
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0F);
+	Sleep(1500);
 
 }
 
@@ -364,7 +384,7 @@ int distri_endmode(int turn){
         }
 
         for (j = turn-1 ; j > 0 ; j--){
-            send(soc[i], wincmd, 2, 0);
+            send(soc[j], wincmd, 2, 0);
             printf("Tell Player %d to win\n", j);
         }
         goto ending;
@@ -377,6 +397,7 @@ int distri_endmode(int turn){
 
 int socketstart(){
 
+    game_header(1);
 	printf("\n\n[Viginti Server Module Initializing...]\n\n");
 
 	WSADATA w; //Initialize Winsock Libraly
@@ -452,4 +473,16 @@ int exit_handler(int turn){
             return 0;
         }
     }
+}
+
+void game_header(int mode){
+
+    if(mode == 1){
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x5F);
+        printf("                                                                      \n");
+        printf(" Viginti Server | Version 1.0 | Status : Initializing                 \n");
+        printf("                                                                      \n");
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
+    }
+
 }

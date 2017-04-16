@@ -39,6 +39,15 @@ int handler_checkactive(){
         if (cmd[0] == CMD_EXIT){
             restart();
         }
+        if (cmd[0] == CMD_READY){
+            printf("Ready recv\n");
+        }
+        if (cmd[0] == CMD_ACTIVE){
+            printf("Active recv\n");
+        }
+        if (cmd[0] == CMD_WAIT){
+            printf("Wait recv\n");
+        }
         break;
     }
 
@@ -71,7 +80,15 @@ int exit_handler(){
             main();
         }
         if(cmd[0] == CMD_READY){
-            return 0;
+            printf("ready recv\n");
+            break;
+        }
+        if(cmd[0] == CMD_ACTIVE){
+            printf("active recv\n");
+            break;
+        }
+        if(cmd[0] == CMD_WAIT){
+            printf("wait recv\n");
         }
     }
 }
@@ -271,15 +288,12 @@ int waitinturn(){
                 totalnumber += 3;
                 printf("Total number +3\n");
             }
-        if(recvcmd[0] == CMD_ACTIVE){
-                printf("Active command\n");
-        }
-        if(recvcmd[0] == CMD_READY){
-                printf("Ready command\n");
-        }
-        if(recvcmd[0] == CMD_EXIT){
-                printf("Exit command\n");
-        }
+        if(recvcmd[0] == CMD_WIN){
+                endmode_win();
+            }
+        if(recvcmd[0] == CMD_LOSE){
+                endmode_lose();
+            }
         break;
     }
 }
@@ -432,6 +446,7 @@ int endmode_lose(){
 
     printf("You lose! Player %d, Better luck next time.", playerno);
     printf("Thank you for playing, Please come again");
+    getch();
     restart();
 
 }
@@ -440,6 +455,7 @@ int endmode_win(){
 
     printf("Congratulations! Player %d, You win the Viginti.\n", playerno);
     printf("Thank you for playing, Please come again :D");
+    getch();
     restart();
 
 }

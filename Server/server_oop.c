@@ -237,6 +237,10 @@ int gamemode(){
 
         }
 
+    if(totalnumber >= maxnum){
+        end_mode(turn);
+    }
+
     printf("[Distro mode]\n");
     handler_serverready();
     int i;
@@ -255,6 +259,18 @@ int gamemode(){
 
 
 }
+}
+
+int end_mode(int loser){
+
+    char losecmd[2];
+    handler_serverready();
+    sprintf(losecmd,"%c%d",CMD_LOSE,0);
+    send(soc[loser],losecmd,2,0);
+    distri_endmode(loser);
+    printf("Player %d lose!, game ending\n", loser);
+    getch();
+
 }
 
 int distri_waitmode(int turn){
@@ -297,8 +313,59 @@ int distri_waitmode(int turn){
         }
 
         for (j = turn-1 ; j > 0 ; j--){
-            send(soc[i], waitcmd, 2, 0);
+            send(soc[j], waitcmd, 2, 0);
             printf("Tell Player %d to wait\n", j);
+        }
+        goto ending;
+    }
+
+    ending:
+    return 0;
+
+}
+
+int distri_endmode(int turn){
+
+    //This function use for distribute wait_mode for user
+
+    char wincmd[2];
+    sprintf(wincmd,"%c%d",CMD_WIN,0);
+    printf("%d", turn);
+
+    if(turn == 1){
+        int i;
+        printf("Least Distro mode!\n");
+        for(i = 2 ; i < max_player+1 ; i++){
+            send(soc[i], wincmd, 2, 0);
+            printf("Tell Player %d to win\n", i);
+        }
+        goto ending;
+    }
+
+    if(turn == max_player){
+
+        int i;
+        printf("Max Distro mode!\n");
+        for(i = max_player-1 ; i > 0 ; i--){
+            send(soc[i], wincmd, 2, 0);
+            printf("Tell Player %d to win\n", i);
+        }
+        goto ending;
+    }
+
+    else{
+
+        int i,j;
+        printf("Between Distro mode!\n");
+
+        for(i = turn+1 ; i < max_player+1 ; i++){
+            send(soc[i], wincmd, 2, 0);
+            printf("Tell Player %d to win\n", i);
+        }
+
+        for (j = turn-1 ; j > 0 ; j--){
+            send(soc[i], wincmd, 2, 0);
+            printf("Tell Player %d to win\n", j);
         }
         goto ending;
     }

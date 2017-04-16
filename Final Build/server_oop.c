@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <signal.h>
+#include <stdlib.h>
 
 //Define section for short command with server//
 #define CMD_HOST 0x03
@@ -88,22 +89,69 @@ int handler_serverready(){
 
 int main(){
 
-    system("MODE 70, 20");
-    header();
+    SMALL_RECT windowSize = {0 , 0 , 69, 20}; //change the values
+    SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &windowSize);
     sprintf(readycmd,"%c%d",CMD_READY,0);
-    system("cls");
-    system("MODE 70, 40");
+    header();
+    //clear();
+    SMALL_RECT windowSize2 = {0 , 0 , 69, 50}; //change the values
+    SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &windowSize2);
     socketstart();
-    system("cls");
     hostmode();
-    Sleep(1000);
-    system("cls");
     waitmode();
-    system("cls");
     gamemode();
-    system("cls");
     getch();
 
+}
+
+void cls( HANDLE hConsole )
+{
+   COORD coordScreen = { 0, 0 };    // home for the cursor
+   DWORD cCharsWritten;
+   CONSOLE_SCREEN_BUFFER_INFO csbi;
+   DWORD dwConSize;
+
+// Get the number of character cells in the current buffer.
+
+   if( !GetConsoleScreenBufferInfo( hConsole, &csbi ))
+   {
+      return;
+   }
+
+   dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+
+   // Fill the entire screen with blanks.
+
+   if( !FillConsoleOutputCharacter( hConsole,        // Handle to console screen buffer
+                                    (TCHAR) ' ',     // Character to write to the buffer
+                                    dwConSize,       // Number of cells to write
+                                    coordScreen,     // Coordinates of first cell
+                                    &cCharsWritten ))// Receive number of characters written
+   {
+      return;
+   }
+
+   // Get the current text attribute.
+
+   if( !GetConsoleScreenBufferInfo( hConsole, &csbi ))
+   {
+      return;
+   }
+
+   // Set the buffer's attributes accordingly.
+
+   if( !FillConsoleOutputAttribute( hConsole,         // Handle to console screen buffer
+                                    csbi.wAttributes, // Character attributes to use
+                                    dwConSize,        // Number of cells to set attribute
+                                    coordScreen,      // Coordinates of first cell
+                                    &cCharsWritten )) // Receive number of characters written
+   {
+      return;
+   }
+
+   // Put the cursor at its home coordinates.
+
+   SetConsoleCursorPosition( hConsole, coordScreen );
 }
 
 void header(){
@@ -135,23 +183,29 @@ void header(){
 
 }
 
-int hostmode(){
-    game_header(2);
 
-	printf("\n\n[Waiting for Host Player...]\n");
+int hostmode(){
+
+    HANDLE hStdout;
+
+    hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    cls(hStdout);
+
+	printf("Waiting for Host Player........");
 
 	while(num_players != 1){
 		soc[1] = accept(soc[0],&cli[num_players],&addr_size); //bind incoming connection to socket
 
 		if (soc[num_players+1]==INVALID_SOCKET) //Error checking
 		{
-			printf(">> Error:  Unable to accept connection!\n");
+			printf("Error:  Unable to accept connection!\n");
 			WSACleanup ();
 			return 0;
 		}
 		else
 		{
-			printf(">> Host Player joined!, Waiting for host to input lobby setting...\n\n");
+			printf("Host Player joined!\n\n");
 			char cmd[2]; //char for command to communicate with client
 			sprintf(cmd,"%c%d",CMD_HOST,0);
 			send(soc[1],cmd,2,0);
@@ -175,14 +229,14 @@ int hostmode(){
                 printf("- Ending number: %d\n", maxnum);
                 break;
             }
+
         }
 	}
 }
 
 int waitmode(){
 
-    game_header(3);
-	printf("\n\n[Waiting for player...]\n\n");
+	printf("\n[Waiting for player...]\n\n");
 	printf("Player 1: Joined (Host)\n");
 	signal(SIGBREAK, &handler_serverexit);
 
@@ -215,7 +269,7 @@ int waitmode(){
         }
 	}
 
-	printf("\n\n[All player joined!, Starting game...]\n");
+	printf("[All player joined!, Starting game...]\n");
 	closesocket (soc[0]);
 }
 
@@ -390,7 +444,7 @@ int distri_endmode(int turn){
         }
 
         for (j = turn-1 ; j > 0 ; j--){
-            send(soc[j], wincmd, 2, 0);
+            send(soc[i], wincmd, 2, 0);
             printf("Tell Player %d to win\n", j);
         }
         goto ending;
@@ -403,7 +457,6 @@ int distri_endmode(int turn){
 
 int socketstart(){
 
-    game_header(1);
 	printf("\n\n[Viginti Server Module Initializing...]\n\n");
 
 	WSADATA w; //Initialize Winsock Libraly
@@ -416,7 +469,7 @@ int socketstart(){
 		printf(" [ERROR: You need WinSock 2.2!]\n");
 		return 0;
 	}
-	printf("   [PASS]\n");
+	printf(" [PASS]\n");
 
 	if (w.wVersion!=0x0202)
 	{
@@ -435,24 +488,24 @@ int socketstart(){
 	printf("- Binding Socket...");
 	if (bind(soc[0],(LPSOCKADDR)&ser,sizeof(ser))==SOCKET_ERROR)
 	{
-		printf(" [ERROR:  Unable to bind socket!]\n");
+		printf("Error:  Unable to bind socket!\n");
 		WSACleanup ();
 		return 0;
 	}
-	printf("           [PASS]\n");
+	printf(" [PASS]\n");
 
     //Server socket listening
 	printf("- Listening Check...");
 	if (listen(soc[0],1)==SOCKET_ERROR)
 	{
-		printf(" [ERROR:  Unable to listen!]\n");
+		printf("Error:  Unable to listen!\n");
 		WSACleanup ();
 		return 0;
 	}
-	printf("          [PASS]\n\n");
-	printf("----------------------------------------");
-    printf("\n\n[Server Successfully Initialize!]\n\n");
-    Sleep(750);
+	printf(" [PASS]\n\n");
+	printf("----------------------------------");
+    printf("Server Successfully Initialize!\n\n");
+
     }
 
 int exit_handler(int turn){

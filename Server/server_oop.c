@@ -94,6 +94,7 @@ int main(){
     system("cls");
     system("MODE 70, 40");
     socketstart();
+    system("cls");
     hostmode();
     waitmode();
     gamemode();
@@ -131,21 +132,22 @@ void header(){
 }
 
 int hostmode(){
+    game_header(2);
 
-	printf("Waiting for Host Player........");
+	printf("\n\n[Waiting for Host Player...]\n");
 
 	while(num_players != 1){
 		soc[1] = accept(soc[0],&cli[num_players],&addr_size); //bind incoming connection to socket
 
 		if (soc[num_players+1]==INVALID_SOCKET) //Error checking
 		{
-			printf("Error:  Unable to accept connection!\n");
+			printf(">> Error:  Unable to accept connection!\n");
 			WSACleanup ();
 			return 0;
 		}
 		else
 		{
-			printf("Host Player joined!\n\n");
+			printf(">> Host Player joined!, Waiting for host to input lobby setting...\n\n");
 			char cmd[2]; //char for command to communicate with client
 			sprintf(cmd,"%c%d",CMD_HOST,0);
 			send(soc[1],cmd,2,0);
@@ -169,6 +171,7 @@ int hostmode(){
                 printf("- Ending number: %d\n", maxnum);
                 break;
             }
+            printf("\n[Lobby successfully configured!]\n");
 
         }
 	}
@@ -410,7 +413,7 @@ int socketstart(){
 		printf(" [ERROR: You need WinSock 2.2!]\n");
 		return 0;
 	}
-	printf(" [PASS]\n");
+	printf("   [PASS]\n");
 
 	if (w.wVersion!=0x0202)
 	{
@@ -429,24 +432,24 @@ int socketstart(){
 	printf("- Binding Socket...");
 	if (bind(soc[0],(LPSOCKADDR)&ser,sizeof(ser))==SOCKET_ERROR)
 	{
-		printf("Error:  Unable to bind socket!\n");
+		printf(" [ERROR:  Unable to bind socket!]\n");
 		WSACleanup ();
 		return 0;
 	}
-	printf(" [PASS]\n");
+	printf("           [PASS]\n");
 
     //Server socket listening
 	printf("- Listening Check...");
 	if (listen(soc[0],1)==SOCKET_ERROR)
 	{
-		printf("Error:  Unable to listen!\n");
+		printf(" [ERROR:  Unable to listen!]\n");
 		WSACleanup ();
 		return 0;
 	}
-	printf(" [PASS]\n\n");
-	printf("----------------------------------");
-    printf("Server Successfully Initialize!\n\n");
-
+	printf("          [PASS]\n\n");
+	printf("----------------------------------------");
+    printf("\n\n[Server Successfully Initialize!]\n\n");
+    Sleep(750);
     }
 
 int exit_handler(int turn){
@@ -478,9 +481,16 @@ int exit_handler(int turn){
 void game_header(int mode){
 
     if(mode == 1){
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x5F);
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x1F);
         printf("                                                                      \n");
         printf(" Viginti Server | Version 1.0 | Status : Initializing                 \n");
+        printf("                                                                      \n");
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
+    }
+    if(mode == 2){
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x2F);
+        printf("                                                                      \n");
+        printf(" Viginti Server | Version 1.0 | Status : Online / Host mode           \n");
         printf("                                                                      \n");
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0A);
     }

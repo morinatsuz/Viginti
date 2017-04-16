@@ -28,6 +28,8 @@ int pmax;
 int totalnumber = 0;
 char hostcmd[2];
 char readycmd[2];
+int totalturn = 1;
+int turn = 1;
 
 int handler_checkactive(){
 
@@ -163,12 +165,15 @@ int hostmode(){
     printf("Please configure lobby setting\n\n");
 
     int sum_players = check_num_player();
+    pmax = sum_players;
     int sum_net = htonl(sum_players);
+
     handler_clientready();
     send(soc, (const char*)&sum_net, sizeof(sum_players),0);
 
 
     int max_num = num_for_game_over();
+    maxnum = max_num;
     int max_net = htonl(max_num);
     handler_clientready();
     send(soc, (const char*)&max_net, sizeof(max_num), 0);
@@ -262,7 +267,7 @@ int waitinturn(){
                 totalnumber += 2;
                 printf("Total number +2\n");
             }
-        if(recvcmd[0] == GAME_ONE){
+        if(recvcmd[0] == GAME_THREE){
                 totalnumber += 3;
                 printf("Total number +3\n");
             }
@@ -308,11 +313,15 @@ int game_start(){
     printf("\n\nGame is starting...");
     char cmd[2];
     restart:
+    if(turn > pmax){
+        turn = 1;
+    }
     handler_checkactive();
     exit_handler();
     printf("Process Restart!\n");
     while(recv(soc, cmd, 2, 0) > 0){
         if(cmd[0] == CMD_TURN){
+            printf("[Turn %d | Total number %d/%d]",totalturn, totalnumber, maxnum);
             int feedback = check_gamenum();
             handler_clientready();
             if(feedback == 1){
@@ -320,6 +329,8 @@ int game_start(){
                 sprintf(feedbackcmd,"%c%d",GAME_ONE,0);
                 send(soc, feedbackcmd, 2, 0);
                 waitinturn();
+                turn ++;
+                totalturn ++;
                 goto restart;
             }
             if(feedback == 2){
@@ -327,6 +338,8 @@ int game_start(){
                 sprintf(feedbackcmd,"%c%d",GAME_TWO,0);
                 send(soc, feedbackcmd, 2, 0);
                 waitinturn();
+                turn ++;
+                totalturn ++;
                 goto restart;
             }
             if(feedback == 3){
@@ -334,6 +347,8 @@ int game_start(){
                 sprintf(feedbackcmd,"%c%d",GAME_THREE,0);
                 send(soc, feedbackcmd, 2, 0);
                 waitinturn();
+                turn ++;
+                totalturn ++;
                 goto restart;
             }
         }
@@ -347,39 +362,34 @@ int game_start(){
                 printf("Hello from server\n");
                 if(recvcmd[0] == GAME_ONE){
                         totalnumber += 1;
+                        printf("[Player %d input 1 | Total %d/%d]",turn,totalnumber,maxnum);
+                        turn++;
+                        totalturn++;
                         goto restart;
                 }
                 if(recvcmd[0] == GAME_TWO){
                         totalnumber += 2;
+                        printf("[Player %d input 2 | Total %d/%d]",turn,totalnumber,maxnum);
+                        turn++;
+                        totalturn++;
                         goto restart;
                 }
                 if(recvcmd[0] == GAME_THREE){
                         totalnumber += 3;
+                        printf("[Player %d input 3 | Total %d/%d]",turn,totalnumber,maxnum);
+                        turn++;
+                        totalturn++;
                         goto restart;
+                }
+                if(recvcmd[0] == CMD_WIN){
+                        endmode_win();
+                }
+                if(recvcmd[0] == CMD_LOSE){
+                        endmode_lose();
                 }
             }
         }
 
-        if(cmd[0] == CMD_WIN){
-            if (hostcmd[0] == CMD_HOST){
-                endmode_host();
-                break;
-            }
-            if (hostcmd[0] == CMD_JOIN){
-                endmode_client();
-                break;
-            }
-        }
-        if (cmd[0] == CMD_LOSE){
-            if (hostcmd[0] == CMD_HOST){
-                endmode_hostlose();
-                break;
-            }
-            if (hostcmd[0] == CMD_JOIN){
-                endmode_lose();
-                break;
-            }
-        }
     }
 
 
@@ -421,28 +431,16 @@ int check_gamenum(){
 int endmode_lose(){
 
     printf("You lose! Player %d, Better luck next time.", playerno);
-    printf("[Waiting for host to select...]");
+    printf("Thank you for playing, Please come again");
+    restart();
 
 }
 
-int endmode_hostlose(){
-
-    printf("You lose! Player %d, Better luck next time.", playerno);
-    printf("[Waiting for host to select...]");
-
-}
-
-int endmode_client(){
+int endmode_win(){
 
     printf("Congratulations! Player %d, You win the Viginti.\n", playerno);
-    printf("[Waiting for host to select...]");
-
-}
-
-int endmode_host(){
-
-    printf("Congratulations! Player 1, You win the Viginti.\n");
-    printf("Do you want to play again?");
+    printf("Thank you for playing, Please come again :D");
+    restart();
 
 }
 

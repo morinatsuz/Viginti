@@ -236,6 +236,7 @@ int gamemode(){
             printf("-> Player %d | Input 3 | Total %d\n", turn, totalnumber);
 
         }
+
     printf("[Distro mode]\n");
     handler_serverready();
     int i;
@@ -258,7 +259,7 @@ int gamemode(){
 
 int distri_waitmode(int turn){
 
-    //This function use for distribute wait mode for user
+    //This function use for distribute wait_mode for user
 
     char waitcmd[2];
     sprintf(waitcmd,"%c%d",CMD_WAIT,0);
